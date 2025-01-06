@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Services\bwciqkg0.1tf~" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="scalar.aspnetcore" Version="1.2.71" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Courses.Business\Courses.Business.csproj" />
+  </ItemGroup>
+
+</Project>
