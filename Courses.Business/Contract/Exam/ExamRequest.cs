@@ -5,24 +5,28 @@ public record ExamRequest (
     TimeSpan Duration
     );
 
-public record QuestionRequest (
-    string Text,
-    float Points
+public record QuestionExamRequest(
+    IEnumerable<int> QuestionIds
     );
 
-public record OptionRequest(
-    string Text,
-    bool IsCorrect
-    );
+public sealed class QuestionExamRequestValidator : AbstractValidator<QuestionExamRequest>
+{
+    public QuestionExamRequestValidator()
+    {
+        RuleFor(e => e.QuestionIds)
+            .NotNull()
+            .NotEmpty();
 
-public record QuestionResponse(
-    int Id, 
-    string Text,
-    float Points,
-    IList<OptionResponse> Options,
-    int? SelectedOptionId
-    );
+        RuleFor(e => e.QuestionIds)
+            .Must(e =>
+            {
+                return e.Count() == e.Distinct().Count()
+                       && e.Any();
+            }).WithMessage("the question must be distinct and not be empty")
+            .When(e => e.QuestionIds is not null);
 
+    }
+}
 public record OptionResponse(
     int Id, 
     string Text,
@@ -34,7 +38,6 @@ public record ExamResponse(
     int Id,
     string Title,
     string Description,
-    float Degree,
     TimeSpan Duration,
     IList<QuestionResponse>? Questions,
     float? Score

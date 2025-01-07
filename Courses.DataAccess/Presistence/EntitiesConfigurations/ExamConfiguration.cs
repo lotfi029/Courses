@@ -8,7 +8,9 @@ public class ExamConfiguration : IEntityTypeConfiguration<Exam>
             .HasMaxLength(450);
 
         builder.Property(e => e.Description)
-            .HasMaxLength(1000);   
+            .HasMaxLength(1000);
 
+        builder.Property(e => e.IsDisable)
+            .HasDefaultValue(true);
     }
 }

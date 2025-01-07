@@ -17,27 +17,17 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return result.IsSuccess ? CreatedAtAction(nameof(GetExam), new {moduleId, id = result.Value}, null) : result.ToProblem();
     }
-    [HttpPost("{examId:int}/add-question")]
-    public async Task<IActionResult> AddQuestion([FromRoute] int examId, [FromBody]  QuestionRequest request, CancellationToken cancellationToken)
-    {
-        var userId = User.GetUserId()!;
-        
-        var result = await _examService.AddQuestionsAsync(examId, userId, request, cancellationToken);
-
-        return result.IsSuccess ? Created() : result.ToProblem();
-    }
-    [HttpPost("{examId:int}/add-question/{questionId:int}/add-options")]
-    public async Task<IActionResult> AddOption([FromRoute] int questionId, [FromRoute] int examId, [FromBody] List<OptionRequest> request, CancellationToken cancellationToken)
+    [HttpPost("assign-question/{id:int}")]
+    public async Task<IActionResult> AssignQuestion([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
-        var result = await _examService.AddOptionAsync(questionId, examId, userId, request, cancellationToken);
+        var result = await _examService.AddExamQuestionsAsync(id, moduleId, userId, request.QuestionIds, cancellationToken);
 
         return result.IsSuccess ? Created() : result.ToProblem();
-
     }
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetExam([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExam([FromRoute] Guid moduleId,[FromRoute] int id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 

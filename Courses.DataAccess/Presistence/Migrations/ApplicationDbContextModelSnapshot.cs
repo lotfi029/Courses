@@ -182,7 +182,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                             Id = "019409bf-3ae7-7cdf-995b-db4620f2ff5f",
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "019409C1-DB8B-7B6F-A8A1-8E35FB4D0748",
-                            DateOfBirth = new DateOnly(2025, 1, 6),
+                            DateOfBirth = new DateOnly(2025, 1, 7),
                             Email = "admin@courses.edu",
                             EmailConfirmed = true,
                             FirstName = "Course",
@@ -382,9 +382,6 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<float>("Degree")
-                        .HasColumnType("real");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -398,6 +395,9 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.Property<Guid>("ModuleId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("NoQuestion")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -421,6 +421,21 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.ExamQuestion", b =>
+                {
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ExamId", "QuestionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("ExamQuestion");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
@@ -499,7 +514,10 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("Optinos");
+                    b.HasIndex("Text", "QuestionId")
+                        .IsUnique();
+
+                    b.ToTable("Options");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Question", b =>
@@ -510,11 +528,13 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ExamId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<float>("Points")
-                        .HasColumnType("real");
+                    b.Property<bool>("IsDisable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -523,7 +543,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ExamId");
+                    b.HasIndex("CourseId");
 
                     b.ToTable("Questions");
                 });
@@ -602,7 +622,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("UserExamId");
 
-                    b.ToTable("UserAnswers");
+                    b.ToTable("Answers");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserCourse", b =>
@@ -1104,6 +1124,25 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("Courses.Business.Entities.ExamQuestion", b =>
+                {
+                    b.HasOne("Courses.Business.Entities.Exam", "Exam")
+                        .WithMany("ExamQuestions")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Courses.Business.Entities.Question", "Question")
+                        .WithMany("ExamQuestions")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Question");
+                });
+
             modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
                 {
                     b.HasOne("Courses.Business.Entities.ApplicationUser", "CreatedBy")
@@ -1191,13 +1230,13 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             modelBuilder.Entity("Courses.Business.Entities.Question", b =>
                 {
-                    b.HasOne("Courses.Business.Entities.Exam", "Exam")
+                    b.HasOne("Courses.Business.Entities.Course", "Course")
                         .WithMany()
-                        .HasForeignKey("ExamId")
+                        .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Exam");
+                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserAnswer", b =>
@@ -1255,7 +1294,7 @@ namespace Courses.DataAccess.Presistence.Migrations
             modelBuilder.Entity("Courses.Business.Entities.UserExam", b =>
                 {
                     b.HasOne("Courses.Business.Entities.Exam", "Exam")
-                        .WithMany("UserExam")
+                        .WithMany("UserExams")
                         .HasForeignKey("ExamId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1371,7 +1410,9 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
                 {
-                    b.Navigation("UserExam");
+                    b.Navigation("ExamQuestions");
+
+                    b.Navigation("UserExams");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
@@ -1381,6 +1422,8 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             modelBuilder.Entity("Courses.Business.Entities.Question", b =>
                 {
+                    b.Navigation("ExamQuestions");
+
                     b.Navigation("Options");
                 });
 

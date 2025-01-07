@@ -45,6 +45,7 @@ public static class Depndencies
         services.AddScoped<IFileService, FileSerivce>();
         services.AddScoped<IExamService, ExamService>();
 
+        services.AddScoped<IQuestionService, QuestionService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IUserService, UserService>();
 

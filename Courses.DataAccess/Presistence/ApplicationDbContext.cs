@@ -13,15 +13,16 @@ public class ApplicationDbContext(
     public DbSet<Exam> Exams { get; set; } = default!;
     public DbSet<Lesson> Lessons { get; set; } = default!;
     public DbSet<CourseModule> Modules { get; set; } = default!;
-    public DbSet<UserAnswer> UserAnswers { get; set; } = default!;
+    public DbSet<UserAnswer> Answers { get; set; } = default!;
     public DbSet<Tag> Tags { get; set; } = default!;
     public DbSet<UserCourse> UserCourses { get; set; } = default!;
     public DbSet<UserLesson> UserLessons { get; set; } = default!;
     public DbSet<UserExam> UserExams { get; set; } = default!;
     public DbSet<UploadedFile> UploadedFiles { get; set; } = default!;
     public DbSet<Question> Questions { get; set; } = default!;
-    public DbSet<Option> Optinos {  get; set; } = default!;
+    public DbSet<Option> Options {  get; set; } = default!;
     public DbSet<Recourse> Recourses { get; set; } = default!;
+    public DbSet<ExamQuestion> ExamQuestion { get; set; } = default!;
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

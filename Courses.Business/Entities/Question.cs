@@ -4,8 +4,9 @@ public class Question
 {
     public int Id { get; set; }
     public string Text { get; set; } = string.Empty;
-    public int ExamId { get; set; }
-    public float Points { get; set; }
-    public Exam Exam { get; set; } = default!;
-    public virtual ICollection<Option> Options { get; set; } = [];
+    public bool IsDisable { get; set; } = true;
+    public Guid CourseId { get; set; }
+    public Course Course { get; set; } = default!;
+    public ICollection<Option> Options { get; set; } = [];
+    public ICollection<ExamQuestion> ExamQuestions { get; set; } = [];
 }

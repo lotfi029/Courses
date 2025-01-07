@@ -1,4 +1,6 @@
-﻿namespace Courses.DataAccess.Presistence.EntitiesConfigurations;
+﻿using Courses.Business.Entities;
+
+namespace Courses.DataAccess.Presistence.EntitiesConfigurations;
 
 public class OptionConfiguration : IEntityTypeConfiguration<Option>
 {
@@ -6,5 +8,7 @@ public class OptionConfiguration : IEntityTypeConfiguration<Option>
     {
         builder.Property(e => e.Text)
             .HasMaxLength(450);
+
+        builder.HasIndex(e => new { e.Text, e.QuestionId }).IsUnique();
     }
 }
