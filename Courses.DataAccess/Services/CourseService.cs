@@ -187,13 +187,7 @@ public partial class CourseService
     //        .ProjectToType<ModuleResponse>()
     //        .ToListAsync(cancellationToken);
 
-    //    var response = new CourseDetailedResponse(
-    //        courses.Id,
-    //        courses.Title,
-    //        courses.Description,
-    //        courses.Level,
-    //        courses.ThumbnailId,
-    //        courses.Duration,
+
             
     //        courses.Rating,
             

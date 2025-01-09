@@ -1,4 +1,5 @@
 ﻿using Courses.Business.Contract.Exam;
+using Courses.Business.Contract.Question;
 
 namespace Courses.Presentation.Controllers;
 [Route("api/{moduleId:guid}/[controller]")]
@@ -17,7 +18,7 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return result.IsSuccess ? CreatedAtAction(nameof(GetExam), new {moduleId, id = result.Value}, null) : result.ToProblem();
     }
-    [HttpPost("assign-question/{id:int}")]
+    [HttpPost("assign-questions/{id:int}")]
     public async Task<IActionResult> AssignQuestion([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -26,13 +27,31 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return result.IsSuccess ? Created() : result.ToProblem();
     }
+    [HttpPut("unassigned-questions/{id:int}")]
+    public async Task<IActionResult> UnAssignedQuestion([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _examService.RemoveExamQuestionsAsync(id, moduleId, userId, request.QuestionIds, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetExam([FromRoute] Guid moduleId,[FromRoute] int id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
-        var result = await _examService.GetExamAsync(id, userId, cancellationToken);
+        var result = await _examService.GetAsync(id, userId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+    [HttpGet("")]
+    public async Task<IActionResult> GetAll([FromRoute] Guid moduleId, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _examService.GetAllAsync(moduleId, userId, cancellationToken);
+
+        return Ok(result);
     }
 }

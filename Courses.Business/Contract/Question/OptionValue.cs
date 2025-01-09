@@ -1,4 +1,4 @@
-﻿namespace Courses.Business.Contract.Exam;
+﻿namespace Courses.Business.Contract.Question;
 
 public record OptionValue(
     string Text,

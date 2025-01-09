@@ -1,5 +1,4 @@
-﻿using Courses.Business.Contract.Exam;
-using Scalar.AspNetCore;
+﻿using Courses.Business.Contract.Question;
 
 namespace Courses.Presentation.Controllers;
 [Route("api/{courseId:guid}/[controller]")]

@@ -19,6 +19,8 @@ public class QuestionErrors
     public static readonly Error NotFoundOptions
         = new(nameof(NotFoundOptions), "option not found", StatusCodes.Status404NotFound);
 
+    public static readonly Error NotFoundQuestionsToRemove
+        = new(nameof(NotFoundQuestionsToRemove), "one or more question not found to remove it from exam", StatusCodes.Status400BadRequest);
 
     public static readonly Error DuplicatedOptionsText
         = new(nameof(DuplicatedOptionsText), "this options already exist", StatusCodes.Status400BadRequest);

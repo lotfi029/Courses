@@ -1,4 +1,4 @@
-﻿namespace Courses.Business.Contract.Exam;
+﻿namespace Courses.Business.Contract.Question;
 
 public sealed class OptionValueValidator : AbstractValidator<OptionValue>
 {

@@ -1,4 +1,4 @@
-﻿using Courses.Business.Contract.Exam;
+﻿using Courses.Business.Contract.Question;
 
 namespace Courses.DataAccess.Services;
 public class QuestionService(ApplicationDbContext context) : IQuestionService

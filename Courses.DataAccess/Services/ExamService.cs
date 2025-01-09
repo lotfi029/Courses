@@ -1,7 +1,7 @@
 ﻿using Courses.Business.Contract.Exam;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.IdentityModel.Tokens;
-using System.Reflection;
+using Courses.Business.Contract.Question;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.Extensions.Configuration.UserSecrets;
 
 namespace Courses.DataAccess.Services;
 public class ExamService(ApplicationDbContext context) : IExamService
@@ -40,7 +40,7 @@ public class ExamService(ApplicationDbContext context) : IExamService
             return ModuleErrors.NotFound;
 
 
-        var questions = await _context.Questions
+        var existQuestions = await _context.Questions
             .Where(e => e.CourseId == courseId)
             .Select(e => new {e.IsDisable, e.Id})
             .ToListAsync(cancellationToken);
@@ -53,7 +53,7 @@ public class ExamService(ApplicationDbContext context) : IExamService
         List<ExamQuestion> examQuestions = [];
         foreach (var questionId in questionIds)
         {
-            if (!questions.Contains(new { IsDisable = false, Id = questionId }))
+            if (!existQuestions.Contains(new { IsDisable = false, Id = questionId }))
                 return QuestionErrors.NotFoundQuestion;
             
             var examQuestion = new ExamQuestion { ExamId = id, QuestionId = questionId };
@@ -66,6 +66,31 @@ public class ExamService(ApplicationDbContext context) : IExamService
         await _context.ExamQuestion.AddRangeAsync(examQuestions, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
         
+        return Result.Success();
+    }
+    public async Task<Result> RemoveExamQuestionsAsync(int id, Guid moduleId, string userId, IEnumerable<int> questionIds, CancellationToken cancellationToken = default)
+    {
+        if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } exam)
+            return ExamErrors.NotFoundExam;
+
+        var courseId = await _context.Modules
+            .Where(e => e.Id == moduleId && e.CreatedById == userId)
+            .Select(e => e.CourseId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (Guid.Empty == courseId)
+            return ModuleErrors.NotFound;
+
+        var existQuestions = await _context.ExamQuestion
+            .Where(e => e.ExamId == id && questionIds.Contains(e.QuestionId))
+            .ToListAsync(cancellationToken);
+
+        if (existQuestions.Count != questionIds.Count())
+            return QuestionErrors.NotFoundQuestionsToRemove;
+
+        _context.ExamQuestion.RemoveRange(existQuestions);
+        await _context.SaveChangesAsync(cancellationToken);
+
         return Result.Success();
     }
     public async Task<Result> UpdateAsync(int id, Guid moduleId, string userId, ExamRequest request, CancellationToken cancellationToken = default)
@@ -94,7 +119,7 @@ public class ExamService(ApplicationDbContext context) : IExamService
 
         return rowUpdated == 0 ? ExamErrors.NotFoundExam : Result.Success();
     }
-    public async Task<Result<ExamResponse>> GetExamAsync(int id, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ExamResponse>> GetAsync(int id, string userId, CancellationToken cancellationToken = default)
     {
 
         //float? score;
@@ -116,7 +141,7 @@ public class ExamService(ApplicationDbContext context) : IExamService
         {
             question = await (
                 from q in _context.Questions
-                join ua in _context.Answers.Where(e => exam.user != null && exam.user.Id == e.Id)
+                join ua in _context.Answers.Where(e => exam.user.Id == e.Id)
                 on q.Id equals ua.QuestionId into answers
                 from uAnswers in answers.DefaultIfEmpty()
                 select new QuestionResponse(q.Id, q.Text, q.IsDisable, null, uAnswers == null ? null : uAnswers.OptionId)
@@ -133,5 +158,34 @@ public class ExamService(ApplicationDbContext context) : IExamService
         var response = new ExamResponse(exam.Id, exam.Title, exam.Description, exam.Duration, question, exam.user?.Score);
 
         return Result.Success(response);
+    }
+
+    public async Task<IEnumerable<ExamResponse>> GetAllAsync(Guid id, string userId, CancellationToken cancellationToken)
+    {
+        var courseId = await _context.Modules
+            .Where(e => e.Id == id)
+            .Select(e => e.CourseId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (Guid.Empty == courseId)
+            return [];
+
+        var moduleIds = await (
+            from c in _context.Courses
+            join m in _context.Modules
+            on c.Id equals m.CourseId
+            select m.Id
+            ).ToListAsync(cancellationToken);
+
+        var exams = await (
+            from e in _context.Exams
+            join ue in _context.UserExams.Where(e => e.UserId == userId)
+            on e.Id equals ue.ExamId into uexam
+            from userExams in uexam.DefaultIfEmpty()
+            where moduleIds.Contains(e.ModuleId)
+            select new ExamResponse(e.Id, e.Title, e.Description, e.Duration, null, userExams.Score)
+            ).ToListAsync(cancellationToken);
+
+        return exams;
     }
 }
