@@ -36,8 +36,17 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
+    [HttpPut("toggle-status/{id:int}")]
+    public async Task<IActionResult> ToggleExam([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _examService.ToggleAsync(id, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetExam([FromRoute] Guid moduleId,[FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExam([FromRoute] int id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 

@@ -8,7 +8,8 @@ public class UserExam
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public float Score { get; set; }
-
+    public TimeSpan? Duration { get; set; }
+    public int ExamTimes { get; set; }
     public ApplicationUser User { get; set; } = default!;
     public Exam Exam {  set; get; } = default!;
     public ICollection<UserAnswer> UserAnswers { get; set; } = [];
