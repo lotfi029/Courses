@@ -10,7 +10,7 @@ public class Exam : AuditableEntity
     public Guid ModuleId { get; set; }
     public int NoQuestion { get; set; }
     public CourseModule Module { get; set; } = default!;
-    public ICollection<UserExam> UserExams { get; set; } = default!;
+    public ICollection<UserExam> UserExams { get; set; } = [];
     //public ICollection<Question> Questions { get; set; } = default!;
     public ICollection<ExamQuestion> ExamQuestions { get; set; } = [];
 }

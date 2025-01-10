@@ -1,6 +1,6 @@
 ﻿namespace Courses.Business.Entities;
 
-public class UserAnswer
+public class Answer
 {
     public int Id { get; set; }
     public int UserExamId { get; set; }

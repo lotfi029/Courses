@@ -1,5 +1,7 @@
 ﻿using Courses.Business.Contract.Answer;
-using System.Runtime.Serialization;
+using Courses.Business.Contract.Exam;
+using Courses.Business.Contract.Question;
+using Serilog.Configuration;
 
 namespace Courses.DataAccess.Services;
 public class AnswerService(ApplicationDbContext context) : IAnswerService
@@ -8,14 +10,12 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
     public async Task<Result> AddAnswer(int examId, string userId, IEnumerable<AnswerValues> request, CancellationToken cancellationToken = default)
     {
-        if (await _context.UserExams.SingleOrDefaultAsync(e => e.UserId == userId && e.ExamId == examId,cancellationToken) is not { } userExam)
+        if (await _context.UserExams.SingleOrDefaultAsync(e => e.UserId == userId && e.ExamId == examId && e.EndDate == null,cancellationToken) is not { } userExam)
             return UserExamErrors.InvalidSubmitExam; // exam not found
-
-        if (userExam.Score >= 70 && userExam.EndDate is not null)
-            return UserExamErrors.DuplicatedAnswer;
 
         var examQuestionid = await _context.ExamQuestion
             .Where(e => e.ExamId == examId)
+            .AsNoTracking()
             .Select(e => e.QuestionId)
             .ToListAsync(cancellationToken);
 
@@ -33,7 +33,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         if (options.Count != examQuestionid.Count)
             return QuestionErrors.NotFoundOptions; // wrong in options
 
-        List<UserAnswer> answers = [];
+        List<Answer> answers = [];
         float score = 0;
         foreach(var question in request)
         {
@@ -51,18 +51,23 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         userExam.Score = score;
         userExam.EndDate = DateTime.UtcNow;
 
+        userExam.Duration = userExam.StartDate - userExam.EndDate;
+
         await _context.Answers.AddRangeAsync(answers, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
-    public async Task<Result> EnrollExamAsync(int examId, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ExamResponse>> EnrollExamAsync(int examId, string userId, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == examId, cancellationToken) is not { } exam)
-            return ExamErrors.NotFoundExam; // see error class TODO:
+            return Result.Failure<ExamResponse>(ExamErrors.NotFoundExam); // see error class TODO:
+
+        if (await _context.UserExams.AnyAsync(e => e.ExamId == examId && e.UserId == userId, cancellationToken))
+            return Result.Failure<ExamResponse>(UserExamErrors.DuplicatedAnswer);
 
         if (exam.IsDisable)
-            return ExamErrors.DuplicatedTitle;
+            return Result.Failure<ExamResponse>(ExamErrors.ExamedNotAvailable);
 
         var userExam = new UserExam
         {
@@ -73,25 +78,116 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         await _context.UserExams.AddAsync(userExam, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
+        var response = await GetEnroledExam(exam, cancellationToken);
+
+        return Result.Success(response);
     }
-    public async Task<Result> ReEnrolExamAsync(int examId, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ExamResponse>> ReEnrolExamAsync(int examId, string userId, CancellationToken cancellationToken = default)
     {
-        if (await _context.UserExams.Where(e => examId == e.ExamId && e.UserId == userId).ToListAsync(cancellationToken) is not { } userExams)
-            return UserExamErrors.DuplicatedAnswer;
-
+        var userExams = await _context.UserExams.Where(e => e.ExamId == examId && e.UserId == userId).ToListAsync(cancellationToken);
+        
+        if (userExams.Count == 0)
+            return Result.Failure<ExamResponse>(UserExamErrors.InvalidEnroll);
+       
         if (userExams.Any(e => e.Score >= 70))
-            return UserExamErrors.DuplicatedAnswer;
+            return Result.Failure<ExamResponse>(UserExamErrors.DuplicatedAnswer);
 
-        if (await _context.Exams.AnyAsync(e => e.Id == examId && !e.IsDisable, cancellationToken))
-            return UserExamErrors.ExamNotAvailable;
+        if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == examId && !e.IsDisable, cancellationToken) is not { } exam)
+            return Result.Failure<ExamResponse>(UserExamErrors.ExamNotAvailable);
 
-        var userExam = new UserExam
+        var userExam = new UserExam                                                        
         {
             ExamId = examId,
             UserId = userId
         };
 
-        return Result.Success();
+        await _context.UserExams.AddAsync(userExam, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var response = await GetEnroledExam(exam, cancellationToken);
+
+        return Result.Success(response); 
+    }
+    public async Task<IEnumerable<UserExamResponse>> UserExamsAsync(int examId, string userId, CancellationToken cancellationToken)
+    {
+        var userExams = await (
+            from e in _context.Exams
+            join ue in _context.UserExams.Where(e => e.UserId == userId)
+            on e.Id equals ue.ExamId
+            where e.Id == examId
+            select new
+            {
+                ue.ExamId,
+                e.Title,
+                e.Description,
+                e.Duration,
+                e.NoQuestion,
+                userExamId = ue.Id,
+                userDeuration = ue.Duration,
+                ue.Score,
+                ue.StartDate,
+                ue.EndDate
+            }
+            ).ToListAsync(cancellationToken);
+
+
+        var question = await (
+            from q in _context.Questions
+            join eq in _context.ExamQuestion
+            on q.Id equals eq.QuestionId
+            join a in _context.Answers
+            on q.Id equals a.QuestionId
+            where eq.ExamId == examId
+            select new
+            {
+                question = new UserQuestionResponse( 
+                    q.Id, 
+                    q.Text, 
+                    a.OptionId == q.Options.Where(e => e.IsCorrect).Select(e => e.Id).First(), 
+                    a.OptionId, 
+                    q.Options.Adapt<List<UserOptionResponse>>()
+                    ),
+                a.UserExamId
+            }).ToListAsync(cancellationToken);
+
+
+        var response = 
+            from ux in userExams
+            join q in question
+            on ux.userExamId equals q.UserExamId into questions
+            select new UserExamResponse(
+                ux.ExamId,
+                ux.Title,
+                ux.Description,
+                ux.Duration,
+                ux.userDeuration,
+                ux.StartDate,
+                ux.EndDate,
+                ux.Score,
+                questions.Select(e => e.question).ToList()
+            );
+
+        return response;
+    }
+    private async Task<ExamResponse> GetEnroledExam(Exam exam, CancellationToken cancellationToken)
+    {
+        
+        var questions = await (
+            from eq in _context.ExamQuestion
+            join q in _context.Questions
+            on eq.QuestionId equals q.Id
+            where eq.ExamId == exam.Id
+            select new QuestionResponse(
+                q.Id, 
+                q.Text,
+                q.IsDisable,
+                q.Options.Adapt<List<OptionResponse>>(),
+                null
+                )
+            ).ToListAsync(cancellationToken);
+
+        ExamResponse response = new(exam.Id, exam.Title, exam.Description, exam.Duration, questions, null);
+
+        return response;
     }
 }

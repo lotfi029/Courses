@@ -10,3 +10,4 @@ public record ExamResponse(
     IList<QuestionResponse>? Questions,
     float? Score
     );
+

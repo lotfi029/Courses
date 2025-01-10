@@ -31,7 +31,7 @@ public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
             EmailConfirmed = true,
             ConcurrencyStamp = DefaultUsers.Admin.ConcurrencyStamp,
             SecurityStamp = DefaultUsers.Admin.SecurityStamp,
-            DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow),
+            DateOfBirth = DateOnly.FromDateTime(new DateTime(2021, 10, 10)),
             PasswordHash = "AQAAAAIAAYagAAAAEB1mj/z+fDc1fii5XJzaIEYd/69RgtrQkCyJ+fbd3r00ddSKPyjGrvAJm2WNy/okcw=="
         });
     }

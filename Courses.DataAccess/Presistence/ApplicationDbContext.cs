@@ -13,7 +13,7 @@ public class ApplicationDbContext(
     public DbSet<Exam> Exams { get; set; } = default!;
     public DbSet<Lesson> Lessons { get; set; } = default!;
     public DbSet<CourseModule> Modules { get; set; } = default!;
-    public DbSet<UserAnswer> Answers { get; set; } = default!;
+    public DbSet<Answer> Answers { get; set; } = default!;
     public DbSet<Tag> Tags { get; set; } = default!;
     public DbSet<UserCourse> UserCourses { get; set; } = default!;
     public DbSet<UserLesson> UserLessons { get; set; } = default!;

@@ -15,7 +15,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
 
         var result = await _answerService.EnrollExamAsync(examId, userId, cancellationToken);
 
-        return result.IsSuccess ?  Ok() : result.ToProblem();
+        return result.IsSuccess ?  Ok(result.Value) : result.ToProblem();
     }
 
     [HttpPost("submit-answer/{examId:int}")]
@@ -26,5 +26,23 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
         var result = await _answerService.AddAnswer(examId, userId, request.Answers, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPost("re-enrol/{id:int}")]
+    public async Task<IActionResult> ReEnrolExam([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _answerService.ReEnrolExamAsync(id, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetAll([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _answerService.UserExamsAsync(id, userId, cancellationToken);
+
+        return Ok(result);
     }
 }
