@@ -121,46 +121,27 @@ public class ExamService(ApplicationDbContext context) : IExamService
     }
     public async Task<Result<ExamResponse>> GetAsync(int id, string userId, CancellationToken cancellationToken = default)
     {
-
-        //float? score;
-        //int? userExamId;
-        var exam = await (
-            from e in _context.Exams
-            join ue in _context.UserExams.Where(x => userId == x.UserId)
-            on e.Id equals ue.ExamId into ue
-            from user in ue.DefaultIfEmpty()
-            where e.Id == id
-            select new { e.Id, e.Title, e.Description, e.Duration, user }
-            ).FirstOrDefaultAsync(cancellationToken);
+        var exam = await _context.Exams
+            .SingleOrDefaultAsync(e => e.Id == id && e.CreatedById == userId, cancellationToken);
 
         if (exam is null)
             return Result.Failure<ExamResponse>(ExamErrors.NotFoundExam);
 
-        List<QuestionResponse> question;
-        if (exam.user is not null)
-        {
-            question = await (
-                from q in _context.Questions
-                join ua in _context.Answers.Where(e => exam.user.Id == e.Id)
-                on q.Id equals ua.QuestionId into answers
-                from uAnswers in answers.DefaultIfEmpty()
-                select new QuestionResponse(q.Id, q.Text, q.IsDisable, null, uAnswers == null ? null : uAnswers.OptionId)
-                ).ToListAsync(cancellationToken);
-        }
-        else
-        {
-            question = await _context.Questions
-                .Where(e => !e.IsDisable)
-                .AsNoTracking()
-                .ProjectToType<QuestionResponse>()
-                .ToListAsync(cancellationToken);
-        }
-        var response = new ExamResponse(exam.Id, exam.Title, exam.Description, exam.Duration, question, exam.user?.Score);
+        var question = await _context.Questions
+            .Include(o => o.Options)
+            .Join(
+                _context.ExamQuestion,
+                q => q.Id,
+                eq => eq.QuestionId,
+                (question, _) => question.Adapt<QuestionResponse>()
+            ).ToListAsync(cancellationToken);
+
+        var response = new ExamResponse(exam.Id, exam.Title, exam.Description, exam.Duration, question);
 
         return Result.Success(response);
     }
 
-    public async Task<IEnumerable<ExamResponse>> GetAllAsync(Guid id, string userId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<ExamResponse>> GetModuleExamsAsync(Guid id, string userId, CancellationToken cancellationToken)
     {
         var courseId = await _context.Modules
             .Where(e => e.Id == id)
@@ -179,11 +160,8 @@ public class ExamService(ApplicationDbContext context) : IExamService
 
         var exams = await (
             from e in _context.Exams
-            join ue in _context.UserExams.Where(e => e.UserId == userId)
-            on e.Id equals ue.ExamId into uexam
-            from userExams in uexam.DefaultIfEmpty()
             where moduleIds.Contains(e.ModuleId)
-            select new ExamResponse(e.Id, e.Title, e.Description, e.Duration, null, userExams.Score)
+            select new ExamResponse(e.Id, e.Title, e.Description, e.Duration, null!)
             ).ToListAsync(cancellationToken);
 
         return exams;

@@ -59,7 +59,7 @@ public class ExamsController(IExamService examService) : ControllerBase
     {
         var userId = User.GetUserId()!;
 
-        var result = await _examService.GetAllAsync(moduleId, userId, cancellationToken);
+        var result = await _examService.GetModuleExamsAsync(moduleId, userId, cancellationToken);
 
         return Ok(result);
     }

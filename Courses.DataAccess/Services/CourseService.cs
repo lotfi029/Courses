@@ -177,28 +177,6 @@ public partial class CourseService
         return courses;
     }
 
-    //public async Task<Result<CourseDetailedResponse>> GetDetailedAsync(Guid id, string? userId, CancellationToken cancellationToken = default)
-    //{
-    //    var courses = (await GetCoursesAsync(id, userId,cancellationToken)).First();
-
-    //    var modules = await _context.Modules
-    //        .Where(e => e.CourseId == id)
-    //        .AsNoTracking()
-    //        .ProjectToType<ModuleResponse>()
-    //        .ToListAsync(cancellationToken);
-
-
-            
-    //        courses.Rating,
-            
-    //        courses.UserCourse!,
-    //        modules,
-    //        courses.Tags,
-    //        courses.Categories
-    //        );
-    //    return Result.Success(response);
-    //}
-
     private async Task<IEnumerable<CourseResponse>> GetCoursesAsync(Guid? id, string? userId = null, CancellationToken cancellationToken = default)
     {
         var query = await (

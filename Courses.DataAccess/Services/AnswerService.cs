@@ -1,6 +1,8 @@
 ﻿using Courses.Business.Contract.Answer;
 using Courses.Business.Contract.Exam;
 using Courses.Business.Contract.Question;
+using Courses.Business.Contract.UserExam;
+using Courses.Business.Entities;
 using Serilog.Configuration;
 
 namespace Courses.DataAccess.Services;
@@ -108,67 +110,96 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         return Result.Success(response); 
     }
-    public async Task<IEnumerable<UserExamResponse>> UserExamsAsync(int examId, string userId, CancellationToken cancellationToken)
+    public async Task<Result<UserExamDetailResponse>> GetAsync(int examId, string userId, CancellationToken cancellationToken)
     {
-        var userExams = await (
-            from e in _context.Exams
-            join ue in _context.UserExams.Where(e => e.UserId == userId)
-            on e.Id equals ue.ExamId
-            where e.Id == examId
-            select new
-            {
-                ue.ExamId,
-                e.Title,
-                e.Description,
-                e.Duration,
-                e.NoQuestion,
-                userExamId = ue.Id,
-                userDeuration = ue.Duration,
-                ue.Score,
-                ue.StartDate,
-                ue.EndDate
-            }
-            ).ToListAsync(cancellationToken);
+        var exam = await _context.Exams
+            .SingleOrDefaultAsync(e => e.Id == examId, cancellationToken);
+
+        if (exam is null)
+            return Result.Failure<UserExamDetailResponse>(ExamErrors.NotFoundExam);
+
+        var response = await GetUserExams([exam], userId, cancellationToken);
+
+        return Result.Success(response.FirstOrDefault())!;
+    }
+    public async Task<IEnumerable<UserExamDetailResponse>> GetAllAsync(Guid courseId, string userId, CancellationToken cancellationToken = default)
+    {
+        var moduleIds = await _context.Modules
+            .Where(e => e.CourseId == courseId)
+            .AsNoTracking()
+            .Select(e => e.Id)
+            .ToListAsync(cancellationToken);
 
 
-        var question = await (
-            from q in _context.Questions
-            join eq in _context.ExamQuestion
-            on q.Id equals eq.QuestionId
-            join a in _context.Answers
-            on q.Id equals a.QuestionId
-            where eq.ExamId == examId
-            select new
-            {
-                question = new UserQuestionResponse( 
-                    q.Id, 
-                    q.Text, 
-                    a.OptionId == q.Options.Where(e => e.IsCorrect).Select(e => e.Id).First(), 
-                    a.OptionId, 
-                    q.Options.Adapt<List<UserOptionResponse>>()
-                    ),
-                a.UserExamId
-            }).ToListAsync(cancellationToken);
+        var exams = await _context.Exams
+            .Where(e => moduleIds.Contains(e.ModuleId))
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
 
-
-        var response = 
-            from ux in userExams
-            join q in question
-            on ux.userExamId equals q.UserExamId into questions
-            select new UserExamResponse(
-                ux.ExamId,
-                ux.Title,
-                ux.Description,
-                ux.Duration,
-                ux.userDeuration,
-                ux.StartDate,
-                ux.EndDate,
-                ux.Score,
-                questions.Select(e => e.question).ToList()
-            );
+        
+        var response = await GetUserExams(exams, userId, cancellationToken);
+        
 
         return response;
     }
+    private async Task<IEnumerable<UserExamDetailResponse>> GetUserExams(List<Exam> exams, string userId, CancellationToken cancellationToken)
+    {
+        var query = await (
+            from ue in _context.UserExams.Where(e => e.UserId == userId)
+            join eq in _context.ExamQuestion
+            on ue.ExamId equals eq.ExamId
+            join q in _context.Questions
+            on eq.QuestionId equals q.Id
+            join a in _context.Answers
+            on new { UserExamId = ue.Id, eq.QuestionId } equals new { a.UserExamId, a.QuestionId }
+            select new
+            {
+                ue.Id,
+                ue.ExamId,
+                ue.Duration,
+                ue.StartDate,
+                ue.EndDate,
+                ue.Score,
+                questions = new UserQuestionResponse(
+                    q.Id,
+                    q.Text,
+                    a.OptionId == q.Options.Where(e => e.IsCorrect).First().Id,
+                    a.OptionId,
+                    q.Options.Adapt<List<UserOptionResponse>>()
+                )
+            })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var userQuestions = query
+            .GroupBy(g => new { g.Id, g.ExamId, g.Duration, g.StartDate, g.EndDate, g.Score })
+            .Select(x => new {
+                x.Key.ExamId,
+                userExams = new UserExamResponse(
+                x.Key.Id,
+                x.Key.Duration,
+                x.Key.StartDate,
+                x.Key.EndDate,
+                x.Key.Score,
+                x.Select(e => e.questions).ToList()
+                )
+            });
+
+        var response = from e in exams
+                       join uq in userQuestions
+                       on e.Id equals uq.ExamId into userExam
+                       select new UserExamDetailResponse(
+                           e.Id,
+                           e.Title,
+                           e.Description,
+                           e.Duration,
+                           e.NoQuestion,
+                           userExam.Select(u => u.userExams)
+                       );
+
+        return response;
+    }
+
     private async Task<ExamResponse> GetEnroledExam(Exam exam, CancellationToken cancellationToken)
     {
         
@@ -181,12 +212,11 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
                 q.Id, 
                 q.Text,
                 q.IsDisable,
-                q.Options.Adapt<List<OptionResponse>>(),
-                null
+                q.Options.Adapt<List<OptionResponse>>()
                 )
             ).ToListAsync(cancellationToken);
 
-        ExamResponse response = new(exam.Id, exam.Title, exam.Description, exam.Duration, questions, null);
+        ExamResponse response = new(exam.Id, exam.Title, exam.Description, exam.Duration, questions);
 
         return response;
     }

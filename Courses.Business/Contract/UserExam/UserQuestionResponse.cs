@@ -1,4 +1,4 @@
-﻿namespace Courses.Business.Contract.Answer;
+﻿namespace Courses.Business.Contract.UserExam;
 
 public record UserQuestionResponse(
     int Id,

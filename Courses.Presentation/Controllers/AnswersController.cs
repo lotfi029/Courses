@@ -37,11 +37,20 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetAll([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Get([FromRoute] int id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
-        var result = await _answerService.UserExamsAsync(id, userId, cancellationToken);
+        var result = await _answerService.GetAsync(id, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+    [HttpGet("{courseId:guid}")]
+    public async Task<IActionResult> GetAll([FromRoute] Guid courseId, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _answerService.GetAllAsync(courseId, userId, cancellationToken);
 
         return Ok(result);
     }
