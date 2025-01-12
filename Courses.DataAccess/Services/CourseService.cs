@@ -1,5 +1,7 @@
 ﻿using Courses.Business.Contract.Category;
 using Courses.Business.Contract.Course;
+using Courses.Business.Contract.Lesson;
+using Courses.Business.Contract.Module;
 using Courses.Business.Contract.Tag;
 
 
@@ -153,94 +155,125 @@ public partial class CourseService(
 
         return Result.Success();
     }
-
-
 }
 public partial class CourseService
 {
 
-    public async Task<Result<CourseResponse>> GetAsync(Guid id, string? userId = null, CancellationToken cancellationToken = default)
+    public async Task<Result<CourseResponse>> GetAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
 
-        var course = await GetCoursesAsync(id, userId, cancellationToken);
+        var course = await _context.Courses
+            .Where(e => e.Id == id && e.CreatedById == userId)
+            .AsNoTracking()
+            .SingleOrDefaultAsync(cancellationToken);
 
         if (course is null)
             return Result.Failure<CourseResponse>(CourseErrors.NotFound);
 
-        return Result.Success(course.First());
+        var modules = await (
+            from m in _context.Modules
+            join l in _context.Lessons
+            on m.Id equals l.ModuleId into lessons
+            where m.CourseId == id
+            select new ModuleResponse(
+                m.Id,
+                m.Title,
+                m.Description,
+                m.Duration,
+                lessons.Adapt<List<LessonResponse>>()
+                )
+            ).ToListAsync(cancellationToken);
+
+
+        var response = (course, modules).Adapt<CourseResponse>();
+
+        return Result.Success(response);
     }
 
-    public async Task<IEnumerable<CourseResponse>> GetAllAsync(string? userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CourseResponse>> GetAllAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var courses = await GetCoursesAsync(null, userId, cancellationToken);
-
-        return courses;
-    }
-
-    private async Task<IEnumerable<CourseResponse>> GetCoursesAsync(Guid? id, string? userId = null, CancellationToken cancellationToken = default)
-    {
-        var query = await (
-            from c in _context.Courses
-            join cCat in _context.CourseCategories
-            on c.Id equals cCat.CourseId into cc
-            from cCats in cc.DefaultIfEmpty()
-            join cats in _context.Categories
-            on cCats.CategoryId equals cats.Id into cats
-            from categories in cats.DefaultIfEmpty()
-            join userCourse in _context.UserCourses
-            on new { CourseId = c.Id, UserId = userId } equals new { userCourse.CourseId, userCourse.UserId } into userCourseJoin
-            from userCourse in userCourseJoin.DefaultIfEmpty()
-            where id == null || c.Id == id
-            select new
-            {
-                c.Id,
-                c.Title,
-                c.Description,
-                c.Level,
-                c.Rating,
-                c.Duration,
-                c.Price,
-                c.ThumbnailId,
-                c.IsPublished,
-                Tags = c.Tags.Select(e => e.Title),
-                categories,
-                userCourse
-            })
+        var courses = await _context.Courses
+            .Where(e => e.CreatedById == userId)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        var course = query.GroupBy(
-            group => new
-            {
-                group.Id,
-                group.Title,
-                group.Description,
-                group.Level,
-                group.Rating,
-                group.Duration,
-                group.Price,
-                group.IsPublished,
-                group.ThumbnailId,
-                group.userCourse
-            })
-            .Select(
-            x => new CourseResponse
-            (
-                x.Key.Id,
-                x.Key.Title,
-                x.Key.Description,
-                x.Key.Level,
-                x.Key.ThumbnailId,
-                x.Key.Duration,
-                x.Key.Rating,
-                x.Key.IsPublished,
-                x.Key.Price,
-                x.SelectMany(e => e.Tags ?? []).Distinct().ToList(),
-                x.Select(e => e.categories).Distinct().Adapt<List<CategoryResponse>>(),
-                x.Key.userCourse.Adapt<UserCourseResponse>()
-            ));
+        if (courses is null)
+            return [];
 
-        return course;
+        var response = courses.Adapt<List<CourseResponse>>();
+
+        return response;
+    }
+
+    //private async Task<IEnumerable<CourseResponse>> LoadCoursesAsync(Guid? id, string userId, CancellationToken cancellationToken = default)
+    //{
+
+    //}
+
+    private async Task<IEnumerable<CourseResponse>> GetCoursesAsync(Guid? id, string? userId = null, CancellationToken cancellationToken = default)
+    {
+        //var query = await (
+        //    from c in _context.Courses
+        //    join cCat in _context.CourseCategories
+        //    on c.Id equals cCat.CourseId into cc
+        //    from cCats in cc.DefaultIfEmpty()
+        //    join cats in _context.Categories
+        //    on cCats.CategoryId equals cats.Id into cats
+        //    from categories in cats.DefaultIfEmpty()
+        //    join userCourse in _context.UserCourses
+        //    on new { CourseId = c.Id, UserId = userId } equals new { userCourse.CourseId, userCourse.UserId } into userCourseJoin
+        //    from userCourse in userCourseJoin.DefaultIfEmpty()
+        //    where id == null || c.Id == id
+        //    select new
+        //    {
+        //        c.Id,
+        //        c.Title,
+        //        c.Description,
+        //        c.Level,
+        //        c.Rating,
+        //        c.Duration,
+        //        c.Price,
+        //        c.ThumbnailId,
+        //        c.IsPublished,
+        //        Tags = c.Tags.Select(e => e.Title),
+        //        categories,
+        //        userCourse
+        //    })
+        //    .AsNoTracking()
+        //    .ToListAsync(cancellationToken);
+
+        //var course = query.GroupBy(
+        //    group => new
+        //    {
+        //        group.Id,
+        //        group.Title,
+        //        group.Description,
+        //        group.Level,
+        //        group.Rating,
+        //        group.Duration,
+        //        group.Price,
+        //        group.IsPublished,
+        //        group.ThumbnailId,
+        //        group.userCourse
+        //    })
+        //    .Select(
+        //    x => new CourseResponse
+        //    (
+        //        x.Key.Id,
+        //        x.Key.Title,
+        //        x.Key.Description,
+        //        x.Key.Level,
+        //        x.Key.ThumbnailId,
+        //        x.Key.Duration,
+        //        x.Key.Rating,
+        //        x.Key.IsPublished,
+        //        x.Key.Price,
+        //        x.SelectMany(e => e.Tags ?? []).Distinct().ToList(),
+        //        x.Select(e => e.categories).Distinct().Adapt<List<CategoryResponse>>()
+        //        //x.Key.userCourse.Adapt<UserCourseResponse>()
+        //    ));
+
+        return  []; 
     }
 
 }

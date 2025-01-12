@@ -65,6 +65,9 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == examId, cancellationToken) is not { } exam)
             return Result.Failure<ExamResponse>(ExamErrors.NotFoundExam); // see error class TODO:
 
+        if (exam.CreatedById == userId)
+            return Result.Failure<ExamResponse>(ExamErrors.InvalidEnrollment);
+
         if (await _context.UserExams.AnyAsync(e => e.ExamId == examId && e.UserId == userId, cancellationToken))
             return Result.Failure<ExamResponse>(UserExamErrors.DuplicatedAnswer);
 
@@ -89,7 +92,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         var userExams = await _context.UserExams.Where(e => e.ExamId == examId && e.UserId == userId).ToListAsync(cancellationToken);
         
         if (userExams.Count == 0)
-            return Result.Failure<ExamResponse>(UserExamErrors.InvalidEnroll);
+            return Result.Failure<ExamResponse>(UserExamErrors.InvalidEnrollment);
        
         if (userExams.Any(e => e.Score >= 70))
             return Result.Failure<ExamResponse>(UserExamErrors.DuplicatedAnswer);
@@ -122,25 +125,40 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         return Result.Success(response.FirstOrDefault())!;
     }
-    public async Task<IEnumerable<UserExamDetailResponse>> GetAllAsync(Guid courseId, string userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserExamDetailResponse>> GetAllAsync(Guid moduleId, string userId, CancellationToken cancellationToken = default)
     {
+        
+        var courseId = await _context.Modules
+            .Where(e => e.Id == moduleId)
+            .AsNoTracking()
+            .Select(e => e.CourseId)
+            .SingleOrDefaultAsync(cancellationToken);
+
         var moduleIds = await _context.Modules
             .Where(e => e.CourseId == courseId)
             .AsNoTracking()
             .Select(e => e.Id)
             .ToListAsync(cancellationToken);
-
-
+        
         var exams = await _context.Exams
             .Where(e => moduleIds.Contains(e.ModuleId))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        
+
         var response = await GetUserExams(exams, userId, cancellationToken);
-        
 
         return response;
+    }
+    public async Task<IEnumerable<UserExamResponse>> GetExamUsersAsync(Exam exam, CancellationToken cancellationToken = default)
+    {
+        var userExams = await _context.UserExams
+           .Where(e => e.ExamId == exam.Id)
+           .AsNoTracking()
+           .ProjectToType<UserExamResponse>()
+           .ToListAsync(cancellationToken);
+
+        return userExams;
     }
     private async Task<IEnumerable<UserExamDetailResponse>> GetUserExams(List<Exam> exams, string userId, CancellationToken cancellationToken)
     {
@@ -160,6 +178,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
                 ue.StartDate,
                 ue.EndDate,
                 ue.Score,
+                ue.UserId,
                 questions = new UserQuestionResponse(
                     q.Id,
                     q.Text,
@@ -172,7 +191,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
             .ToListAsync(cancellationToken);
 
         var userQuestions = query
-            .GroupBy(g => new { g.Id, g.ExamId, g.Duration, g.StartDate, g.EndDate, g.Score })
+            .GroupBy(g => new { g.Id, g.ExamId, g.Duration, g.StartDate, g.EndDate, g.Score, g.UserId })
             .Select(x => new {
                 x.Key.ExamId,
                 userExams = new UserExamResponse(
@@ -181,6 +200,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
                 x.Key.StartDate,
                 x.Key.EndDate,
                 x.Key.Score,
+                x.Key.UserId,
                 x.Select(e => e.questions).ToList()
                 )
             });
@@ -194,6 +214,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
                            e.Description,
                            e.Duration,
                            e.NoQuestion,
+                           userQuestions.Count(),
                            userExam.Select(u => u.userExams)
                        );
 
@@ -216,7 +237,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
                 )
             ).ToListAsync(cancellationToken);
 
-        ExamResponse response = new(exam.Id, exam.Title, exam.Description, exam.Duration, questions);
+        ExamResponse response = new(exam.Id, exam.Title, exam.Description, exam.Duration,null, questions);
 
         return response;
     }

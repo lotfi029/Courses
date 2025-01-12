@@ -7,7 +7,7 @@ public record ExamResponse(
     string Title,
     string Description,
     TimeSpan Duration,
-    //bool IsDisable,
+    bool? IsDisable,
     IEnumerable<QuestionResponse> Questions = default!
     );
 

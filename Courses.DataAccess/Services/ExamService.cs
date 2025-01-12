@@ -1,12 +1,14 @@
 ﻿using Courses.Business.Contract.Exam;
 using Courses.Business.Contract.Question;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.Extensions.Configuration.UserSecrets;
+using Courses.Business.Contract.UserExam;
 
 namespace Courses.DataAccess.Services;
-public class ExamService(ApplicationDbContext context) : IExamService
+public class ExamService(
+    ApplicationDbContext context,
+    IAnswerService answerService) : IExamService
 {
     private readonly ApplicationDbContext _context = context;
+    private readonly IAnswerService _answerService = answerService;
 
     public async Task<Result<int>> AddAsync(Guid moduleId, string userId, ExamRequest request, CancellationToken cancellationToken = default)
     {
@@ -136,7 +138,7 @@ public class ExamService(ApplicationDbContext context) : IExamService
                 (question, _) => question.Adapt<QuestionResponse>()
             ).ToListAsync(cancellationToken);
 
-        var response = new ExamResponse(exam.Id, exam.Title, exam.Description, exam.Duration, question);
+        var response = new ExamResponse(exam.Id, exam.Title, exam.Description, exam.Duration, null,question);
 
         return Result.Success(response);
     }
@@ -161,9 +163,27 @@ public class ExamService(ApplicationDbContext context) : IExamService
         var exams = await (
             from e in _context.Exams
             where moduleIds.Contains(e.ModuleId)
-            select new ExamResponse(e.Id, e.Title, e.Description, e.Duration, null!)
+            select new ExamResponse(e.Id, e.Title, e.Description, e.Duration, e.IsDisable, null!)
             ).ToListAsync(cancellationToken);
 
         return exams;
+    }
+    public async Task<IEnumerable<UserExamDetailResponse>> GetUserExams(Guid moduleId, string studentId ,string userId, CancellationToken cancellationToken = default)
+    {
+        if (!await _context.Modules.AnyAsync(e => e.Id == moduleId && e.CreatedById == userId, cancellationToken))
+            return [];
+
+        var response = await _answerService.GetAllAsync(moduleId, userId, cancellationToken);
+
+        return response;
+    }
+    public async Task<IEnumerable<UserExamResponse>> GetExamUsersAsync(int examId, string userId, CancellationToken cancellationToken = default)
+    {
+        if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == examId && e.CreatedById == userId, cancellationToken) is not { } exam)
+            return []; // not found || unautherize access
+
+        var userExams = await _answerService.GetExamUsersAsync(exam, cancellationToken);
+
+        return userExams;
     }
 }

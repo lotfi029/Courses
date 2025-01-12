@@ -10,4 +10,5 @@ public interface IAnswerService
     Task<Result<ExamResponse>> ReEnrolExamAsync(int examId, string userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<UserExamDetailResponse>> GetAllAsync(Guid courseId, string userId, CancellationToken cancellationToken);
     Task<Result<UserExamDetailResponse>> GetAsync(int examId, string userId, CancellationToken cancellationToken);
+    Task<IEnumerable<UserExamResponse>> GetExamUsersAsync(Exam exam, CancellationToken cancellationToken = default);
 }

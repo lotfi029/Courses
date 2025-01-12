@@ -63,4 +63,22 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("{id:int}/students")]
+    public async Task<IActionResult> GetExamUsers([FromRoute] int id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _examService.GetExamUsersAsync(id, userId, cancellationToken);
+
+        return Ok(result);
+    }
+    [HttpGet("student-exams")]
+    public async Task<IActionResult> GetExamUsers([FromRoute] Guid moduleId, [FromQuery] string studentId, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _examService.GetUserExams(moduleId, studentId, userId, cancellationToken);
+
+        return Ok(result);
+    }
 }

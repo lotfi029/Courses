@@ -3,5 +3,5 @@
 public record OptionResponse(
     int Id, 
     string Text,
-    bool IsCorrect
+    bool? IsCorrect
     );

@@ -13,9 +13,10 @@ public record CourseResponse (
     float Rating,
     bool IsPublished,
     double Price,
-    IList<string> Tags,
-    IList<CategoryResponse> Categories,
-    UserCourseResponse? UserCourse
+    IEnumerable<string> Tags,
+    IEnumerable<CategoryResponse> Categories,
+    IEnumerable<ModuleResponse> Modules
+    //UserCourseResponse? UserCourse
 );
 public record UserCourseResponse(
     Guid Id,

@@ -10,4 +10,7 @@ public class ExamErrors
 
     public static readonly Error ExamedNotAvailable
         = new(nameof(ExamedNotAvailable), "exam is disabled at this time.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error InvalidEnrollment
+        = new(nameof(InvalidEnrollment), "your are the auther of this exam and you can't enroll this exam as student", StatusCodes.Status400BadRequest);
 }

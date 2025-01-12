@@ -11,6 +11,6 @@ public class UserExamErrors
     public static readonly Error ExamNotAvailable
         = new(nameof(ExamNotAvailable), "this exam is not available now.", StatusCodes.Status400BadRequest);
 
-    public static readonly Error InvalidEnroll
-        = new(nameof(InvalidEnroll), "you don't have any enrolled exam to reEnroll to exam.", StatusCodes.Status400BadRequest);
+    public static readonly Error InvalidEnrollment
+        = new(nameof(InvalidEnrollment), "You have not enrolled in this exam.", StatusCodes.Status400BadRequest);
 }
