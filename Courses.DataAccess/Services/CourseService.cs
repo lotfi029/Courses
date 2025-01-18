@@ -1,17 +1,20 @@
-﻿using Courses.Business.Contract.Category;
-using Courses.Business.Contract.Course;
+﻿using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.Tag;
+using Courses.Business.Contract.User;
+using Microsoft.Identity.Client;
 
 
 namespace Courses.DataAccess.Services;
 public partial class CourseService(
     ApplicationDbContext context,
-    IFileService fileService) : ICourseService
+    IFileService fileService,
+    IEnrollmentService enrollmentService) : ICourseService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IFileService _fileService = fileService;
+    private readonly IEnrollmentService _enrollmentService = enrollmentService;
 
     public async Task<Result<Guid>> AddAsync(AddCourseRequest request, CancellationToken cancellationToken = default)
     {
@@ -155,10 +158,6 @@ public partial class CourseService(
 
         return Result.Success();
     }
-}
-public partial class CourseService
-{
-
     public async Task<Result<CourseResponse>> GetAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
 
@@ -184,12 +183,18 @@ public partial class CourseService
                 )
             ).ToListAsync(cancellationToken);
 
+        (int NoCompleted, int NoEnrollment) = await _enrollmentService.GetCourseInfoAsync(id, cancellationToken);
 
-        var response = (course, modules).Adapt<CourseResponse>();
+        var response = (course, modules, NoCompleted, NoEnrollment).Adapt<CourseResponse>();
 
         return Result.Success(response);
     }
+    public async Task<IEnumerable<UserResponse>> GetUsersInCourseAsync(Guid id, string userId, CancellationToken cancellationToken = default)
+    {
+        var response = await _enrollmentService.GetUsersInCourseAsync(id, cancellationToken);
 
+        return response;
+    }
     public async Task<IEnumerable<CourseResponse>> GetAllAsync(string userId, CancellationToken cancellationToken = default)
     {
         var courses = await _context.Courses
@@ -204,11 +209,52 @@ public partial class CourseService
 
         return response;
     }
+    public async Task<Result> BlockedUserAsync(Guid id, string userId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
 
-    //private async Task<IEnumerable<CourseResponse>> LoadCoursesAsync(Guid? id, string userId, CancellationToken cancellationToken = default)
-    //{
+        //var result = await _enrollmentService.GetByCourseIdAsync(id, userId, cancellationToken);
 
-    //}
+        //if (result.IsFailure)
+        //    return result.Error;
+
+        //var userCourse = result.Value!;
+
+        //if (userCourse.IsBlocked)
+        //    return CourseErrors.InvalidUserBlock;
+
+        //userCourse.IsBlocked = true;
+
+        //_context.UserCourses.Update(userCourse);
+        //await _context.SaveChangesAsync(cancellationToken);
+
+        //return Result.Success();
+    }
+    public async Task<Result> UnBlockedUserAsync(Guid id, string userId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+     
+        //var result = await _enrollmentService.GetByCourseIdAsync(id, userId, cancellationToken);
+        
+        //if (result.IsFailure)
+        //    return result.Error;
+
+        //var userCourse = result.Value!;
+
+        //if (!userCourse.IsBlocked)
+        //    return CourseErrors.InvalidUserBlock;
+
+        //userCourse.IsBlocked = false;
+
+        //_context.UserCourses.Update(userCourse);
+        //await _context.SaveChangesAsync(cancellationToken);
+
+        //return Result.Success();
+    }
+}
+public partial class CourseService
+{
+
 
     private async Task<IEnumerable<CourseResponse>> GetCoursesAsync(Guid? id, string? userId = null, CancellationToken cancellationToken = default)
     {

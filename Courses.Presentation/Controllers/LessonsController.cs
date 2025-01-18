@@ -8,15 +8,15 @@ namespace Courses.Presentation.Controllers;
 public class LessonsController(ILessonService lessonService) : ControllerBase
 {
     private readonly ILessonService _lessonService = lessonService;
-    
+
     [HttpPost("")]
-    public async Task<IActionResult> Add([FromRoute]Guid courseId, [FromRoute] Guid moduleId,[FromForm] LessonRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Add([FromRoute] Guid courseId, [FromRoute] Guid moduleId, [FromForm] LessonRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
         var result = await _lessonService.AddAsync(moduleId, userId, request, cancellationToken);
 
-        return result.IsSuccess ? CreatedAtAction(nameof(Get), new {courseId,moduleId,id = result.Value}, null) : result.ToProblem();
+        return result.IsSuccess ? CreatedAtAction(nameof(Get), new { courseId, moduleId, id = result.Value }, null) : result.ToProblem();
     }
     [HttpPost("add-recourse/{id:guid}")]
     public async Task<IActionResult> AddResourse([FromRoute] Guid id, [FromForm] RecourseRequest request, CancellationToken cancellationToken)
@@ -61,5 +61,17 @@ public class LessonsController(ILessonService lessonService) : ControllerBase
         var result = await _lessonService.GetAllAsync(moduleId, userId, cancellationToken);
 
         return Ok(result);
+    }
+    [HttpPut("{id:guid}/update-order")]
+    public async Task<IActionResult> Update([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromHeader] int newOrder, CancellationToken cancellationToken)
+    {
+        if (newOrder < 1)
+            return BadRequest("invalid order");
+
+        var userId = User.GetUserId()!;
+
+        var result = await _lessonService.UpdateLessonOrderAsync(moduleId, id, userId, newOrder, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
     }
 }

@@ -1,5 +1,8 @@
 ﻿using Courses.Business.Contract.Lesson;
-using Courses.Business.Entities;
+using Serilog;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Xml;
 
 namespace Courses.DataAccess.Services;
 public class LessonService(
@@ -11,17 +14,22 @@ public class LessonService(
 
     public async Task<Result<Guid>> AddAsync(Guid moduleId, string userId, LessonRequest request, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Modules.AnyAsync(e => e.CreatedById == userId && e.Id == moduleId, cancellationToken))
+        var lessons = await _context.Lessons.Where(e => e.ModuleId == moduleId && e.CreatedById == userId).ToListAsync(cancellationToken);
+
+        if (lessons is null)
             return Result.Failure<Guid>(ModuleErrors.NotFound);
 
         if (await _context.Lessons.AnyAsync(e => e.Title == request.Title && e.ModuleId == moduleId, cancellationToken))
             return Result.Failure<Guid>(LessonErrors.DuplicatedTitle);
 
+        var lastLesson = lessons.Max(e => e.Order);
+
         Lesson lesson = new()
         {
             Title = request.Title,
             ModuleId = moduleId,
-            FileId = await _fileService.UploadAsync(request.File, cancellationToken)
+            FileId = await _fileService.UploadAsync(request.File, cancellationToken),
+            Order = lastLesson + 1
         };
 
         await _context.Lessons.AddAsync(lesson, cancellationToken);
@@ -46,15 +54,73 @@ public class LessonService(
             .Where(e => e.Id == id)
             .ExecuteUpdateAsync(setters =>
                 setters
-                //.SetProperty(e => e.Resources, request.Resources)
-                .SetProperty(e => e.Title, request.Title)
-                .SetProperty(e => e.Order, request.Order),
-                //.SetProperty(e => e.VideoUrl, request.VideoUrl),
+                .SetProperty(e => e.Title, request.Title),
                 cancellationToken
             );
 
         if (result == 0)
             return LessonErrors.NotFound;
+
+        return Result.Success();
+    }
+    public async Task<Result> UpdateLessonOrderAsync(Guid moduleId ,Guid id, string userId, int newOrder, CancellationToken cancellationToken = default)
+    {
+        var lessons = await _context.Lessons
+            .Where(e => e.ModuleId == moduleId)
+            .OrderBy(e => e.Order)
+            .ToListAsync(cancellationToken);
+        
+        if (lessons is null)
+            return LessonErrors.NotFound;
+
+        int lessonCnt = lessons.Count;
+        
+        if (newOrder < 1 || newOrder > lessonCnt)
+            return LessonErrors.InvalidLessonOrder;
+
+        //Log.Information(JsonSerializer.Serialize(lessons, options: new JsonSerializerOptions
+        //{
+        //    ReferenceHandler = ReferenceHandler.Preserve
+        //    //WriteIndented = true // Optional for better readability
+        //}));
+
+        var updatedLesson = lessons.SingleOrDefault(e => e.Id == id && e.CreatedById == userId);
+        
+        if (updatedLesson == null)
+            return LessonErrors.NotFound;
+
+        var oldOrder = updatedLesson.Order;
+
+
+        if (newOrder < oldOrder)
+            foreach(var l in lessons)
+            {
+                if (l.Order <= oldOrder && l.Order >= newOrder)
+                {
+                    if (l.Id == updatedLesson.Id)
+                        l.Order = newOrder;
+                    else 
+                        l.Order++;
+                }
+            }
+        else
+            foreach (var l in lessons)
+            {
+                if (l.Order >= oldOrder && l.Order <= newOrder)
+                {
+                    if (l.Id == updatedLesson.Id)
+                        l.Order = newOrder;
+                    else
+                        l.Order--;
+                }
+            }
+    
+            
+        
+        
+
+        _context.Lessons.UpdateRange(lessons);
+        await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

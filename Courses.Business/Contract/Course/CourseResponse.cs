@@ -13,15 +13,9 @@ public record CourseResponse (
     float Rating,
     bool IsPublished,
     double Price,
+    int NoStudent,
+    int NoCompleted,
     IEnumerable<string> Tags,
     IEnumerable<CategoryResponse> Categories,
     IEnumerable<ModuleResponse> Modules
-    //UserCourseResponse? UserCourse
 );
-public record UserCourseResponse(
-    Guid Id,
-    string CompleteStatus,
-    DateTime LastInteractDate,
-    DateTime? FinshedDate
-    );
-

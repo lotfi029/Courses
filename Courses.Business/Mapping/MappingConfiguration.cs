@@ -3,7 +3,6 @@ using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.User;
 using Mapster;
-using Serilog.Configuration;
 
 namespace Courses.Business.Mapping;
 public class MappingConfiguration : IRegister
@@ -26,10 +25,14 @@ public class MappingConfiguration : IRegister
             .Map(dest => dest.Roles, src => src.userRoles);
 
         
-        config.NewConfig<(Course course, List<ModuleResponse> modules), CourseResponse>()
+        config.NewConfig<(Course course, List<ModuleResponse> modules, int NoCompleted, int NoEnrollment), CourseResponse>()
             .Map(dest => dest.Modules, src => src.modules)
-            .Map(dest => dest, src => src.course);
+            .Map(dest => dest, src => src.course)
+            .Map(dest => dest.NoCompleted, src => src.NoCompleted)
+            .Map(dest => dest.NoStudent, src => src.NoEnrollment);
 
+        //config.NewConfig<(Course course, UserCourse userCourse), UserCourseResponse>();
+            
 
 
         config.NewConfig<IEnumerable<string>, Tag>()

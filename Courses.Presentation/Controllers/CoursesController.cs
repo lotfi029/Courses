@@ -94,5 +94,14 @@ public class CoursesController(ICourseService courseService) : ControllerBase
 
         return Ok(result);
     }
+    [HttpGet("{id:guid}/users")]
+    public async Task<IActionResult> GetUsersCourse([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _courseService.GetUsersInCourseAsync(id, userId, cancellationToken);
+
+        return Ok(result);
+    }
     
 }

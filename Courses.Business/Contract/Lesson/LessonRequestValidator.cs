@@ -17,9 +17,5 @@ public class LessonRequestValidator : AbstractValidator<LessonRequest>
                 return FileSettings.AllowedVideoExtensions.Contains(extension);
             })
             .WithMessage(FileSettings.VideoErrorMessage);
-
-
-        RuleFor(e => e.Order)
-            .GreaterThanOrEqualTo(0);
     }
 }

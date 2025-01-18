@@ -12,4 +12,10 @@ public class CourseErrors
     
     public static readonly Error InvalidCategory
         = new(nameof(InvalidCategory), "invalid category", StatusCodes.Status409Conflict);
+
+    public static readonly Error InvalidUserBlock
+        = new(nameof(InvalidUserBlock), "this user is already blocked.", StatusCodes.Status400BadRequest);
+    
+    public static readonly Error InvalidUserUnBlock
+        = new(nameof(InvalidUserUnBlock), "this user is already Un blocked.", StatusCodes.Status400BadRequest);
 }

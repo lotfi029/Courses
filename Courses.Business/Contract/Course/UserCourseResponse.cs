@@ -2,7 +2,7 @@
 using Courses.Business.Contract.Module;
 
 namespace Courses.Business.Contract.Course;
-public record CourseDetailedResponse (
+public record UserCourseResponse (
     Guid Id, 
     string Title,
     string Description,
@@ -15,6 +15,6 @@ public record CourseDetailedResponse (
     DateTime LastInteractDate,
     DateTime? FinshedDate,
     IList<UserModuleResponse>? Modules,
-    IList<string> Tags,
-    IList<CategoryResponse> Categories
+    IList<string>? Tags,
+    IList<CategoryResponse>? Categories
 );

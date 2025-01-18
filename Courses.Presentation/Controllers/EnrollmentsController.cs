@@ -25,4 +25,20 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : Contr
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
+    [HttpGet("")]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _enrollmentService.GetMyCoursesAsync(userId, cancellationToken);
+
+        return Ok(result);
+    }
+    [HttpGet("all-courses")]
+    public async Task<IActionResult> GetAllCourse(CancellationToken cancellationToken)
+    {
+        var result = await _enrollmentService.GetAllCoursesAsync(cancellationToken);
+
+        return Ok(result);
+    }
 }

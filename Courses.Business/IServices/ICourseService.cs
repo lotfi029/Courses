@@ -1,5 +1,6 @@
 ﻿using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Tag;
+using Courses.Business.Contract.User;
 
 namespace Courses.Business.IServices;
 public interface ICourseService
@@ -13,5 +14,8 @@ public interface ICourseService
     Task<Result> UnAssignCourseToTagsAsync(string userid, Guid id, TagsRequest tags, CancellationToken cancellationToken = default);
     Task<Result<CourseResponse>> GetAsync(Guid id, string userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<CourseResponse>> GetAllAsync(string userId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<UserResponse>> GetUsersInCourseAsync(Guid id, string userId, CancellationToken cancellationToken = default);
+    Task<Result> BlockedUserAsync(Guid id, string userId, CancellationToken cancellationToken = default);
+    Task<Result> UnBlockedUserAsync(Guid id, string userId, CancellationToken cancellationToken = default);
     //Task<Result<CourseDetailedResponse>> GetDetailedAsync( Guid id,string? userId, CancellationToken cancellationToken = default);
 }
