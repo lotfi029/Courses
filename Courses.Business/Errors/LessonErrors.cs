@@ -10,5 +10,4 @@ public class LessonErrors
     
     public static readonly Error DuplicatedTitle
         = new(nameof(DuplicatedTitle), "there is an lesson with same title select another title.", StatusCodes.Status409Conflict);
-
 }

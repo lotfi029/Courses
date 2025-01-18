@@ -18,8 +18,44 @@ public class LessonsController(ILessonService lessonService) : ControllerBase
 
         return result.IsSuccess ? CreatedAtAction(nameof(Get), new { courseId, moduleId, id = result.Value }, null) : result.ToProblem();
     }
-    [HttpPost("add-recourse/{id:guid}")]
-    public async Task<IActionResult> AddResourse([FromRoute] Guid id, [FromForm] RecourseRequest request, CancellationToken cancellationToken)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateTitle([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateLessonTitleRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _lessonService.UpdateTitleAsync(id, moduleId, request, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPut("{id:guid}/update-order")]
+    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateLessonOrderRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _lessonService.UpdateOrderAsync(moduleId, id, userId, request.Order, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPut("{id:guid}/update-video")]
+    public async Task<IActionResult> UpdateVideo([FromRoute] Guid id, [FromForm] UpdateLessonVideoRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _lessonService.UpdateVideoAsync(id, userId, request, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPut("{id:guid}/toggle-preview")]
+    public async Task<IActionResult> ToggleIsPreview([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _lessonService.ToggleIsPreviewAsync(id, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPost("{id:guid}/add-recourse")]
+    public async Task<IActionResult> AddRecourse([FromRoute] Guid id, [FromForm] RecourseRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -27,22 +63,6 @@ public class LessonsController(ILessonService lessonService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
 
-    }
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] LessonRequest request, CancellationToken cancellationToken)
-    {
-        var userId = User.GetUserId()!;
-        var result = await _lessonService.UpdateAsync(id, request, userId, cancellationToken);
-
-        return result.IsSuccess ? Ok() : result.ToProblem();
-    }
-    [HttpPut("toggle-preview/{id:guid}")]
-    public async Task<IActionResult> ToggleIsPreview([FromRoute] Guid id, CancellationToken cancellationToken)
-    {
-        var userId = User.GetUserId()!;
-        var result = await _lessonService.ToggleIsPreviewAsync(id, userId, cancellationToken);
-
-        return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get([FromRoute] Guid id, CancellationToken cancellationToken)
@@ -62,16 +82,5 @@ public class LessonsController(ILessonService lessonService) : ControllerBase
 
         return Ok(result);
     }
-    [HttpPut("{id:guid}/update-order")]
-    public async Task<IActionResult> Update([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromHeader] int newOrder, CancellationToken cancellationToken)
-    {
-        if (newOrder < 1)
-            return BadRequest("invalid order");
 
-        var userId = User.GetUserId()!;
-
-        var result = await _lessonService.UpdateLessonOrderAsync(moduleId, id, userId, newOrder, cancellationToken);
-
-        return result.IsSuccess ? Ok() : result.ToProblem();
-    }
 }

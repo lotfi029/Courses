@@ -11,7 +11,7 @@ public record UserCourseResponse (
     TimeSpan? Duration,
     float Rating,
     Guid UserCourseId,
-    string CompleteStatus,
+    bool IsCompleted,
     DateTime LastInteractDate,
     DateTime? FinshedDate,
     IList<UserModuleResponse>? Modules,

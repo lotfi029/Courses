@@ -18,4 +18,7 @@ public class CourseErrors
     
     public static readonly Error InvalidUserUnBlock
         = new(nameof(InvalidUserUnBlock), "this user is already Un blocked.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error CourseNotValidToPublish
+         = new(nameof(CourseNotValidToPublish), "the course must be contain at least 2 lesson preview", StatusCodes.Status400BadRequest);
 }

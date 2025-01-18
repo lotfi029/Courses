@@ -61,7 +61,7 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
             return Result.Failure(ModuleErrors.NotFound);
 
         if (module.CreatedById != userId)
-            return Result.Failure(UserErrors.UnAutherizeUpdate);
+            return Result.Failure(UserErrors.UnAutherizeAccess);
 
         module.IsDisable = !module.IsDisable;
 

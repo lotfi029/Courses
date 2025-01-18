@@ -2,8 +2,8 @@
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.Tag;
+using Courses.Business.Contract.UploadFile;
 using Courses.Business.Contract.User;
-using Microsoft.Identity.Client;
 
 
 namespace Courses.DataAccess.Services;
@@ -20,7 +20,6 @@ public partial class CourseService(
     {
         var course = request.Adapt<Course>();
 
-        // save Image
         course.ThumbnailId = await _fileService.UploadAsync(request.Thumbnail, cancellationToken);
         
         var tags = await _context.Tags
@@ -47,28 +46,62 @@ public partial class CourseService(
 
     public async Task<Result> UpdateAsync(string userid, Guid id, UpdateCourseRequest request, CancellationToken cancellationToken = default)
     {
-
-        var result = await _context.Courses
-            .Where(e => e.Id == id && e.CreatedById == userid)
-            .ExecuteUpdateAsync(setters =>
-                setters
-                .SetProperty(e => e.Title, request.Title)
-                .SetProperty(e => e.Description, request.Description)
-                .SetProperty(e => e.Level, request.Level)
-                .SetProperty(e => e.Price, request.Price),
-                cancellationToken
-            );
-
-        if (result == 0)
+        if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)
             return CourseErrors.NotFound;
+
+        if (course.CreatedById != userid)
+            return UserErrors.UnAutherizeAccess;
+
+        course = request.Adapt(course);
+
+        await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
-
-    public async Task<Result> ToggleIsPublishAsync(string userid, Guid id, CancellationToken cancellationToken = default)
+    public async Task<Result> UpdateThumbnailAsync(Guid id, string userId, UploadImageRequest request,CancellationToken cancellationToken = default)
     {
         if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)
-            return Result.Failure(CourseErrors.NotFound);
+            return CourseErrors.NotFound;
+
+        if (course.CreatedById != userId)
+            return UserErrors.UnAutherizeAccess;
+
+        var imageId = await _fileService.UploadAsync(request.Image, cancellationToken);
+
+        course.ThumbnailId = imageId;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+    public async Task<Result> ToggleIsPublishAsync(string userid, Guid id, CancellationToken cancellationToken = default)
+    {
+
+        var course = await _context.Courses
+            .Include(e => e.Modules)
+            .ThenInclude(e => e.Lessons)
+            .SingleOrDefaultAsync(e => e.Id == id, cancellationToken);
+
+        if (course is null)
+            return CourseErrors.NotFound;
+
+        if (course.CreatedById != userid)
+            return UserErrors.UnAutherizeAccess;
+
+        var modules = await _context.Modules
+            .Include(e => e.Lessons)
+            .Where(e => e.CourseId == id)
+            .ToDictionaryAsync(e => e, e => e.Lessons, cancellationToken);
+        
+        int preViewCnt = 0;
+        
+        foreach(var module in modules)
+        {
+            preViewCnt += module.Value.Count(e => e.IsPreview);
+        }
+
+        if (preViewCnt < 2)
+            return CourseErrors.CourseNotValidToPublish;
 
         course.IsPublished = !course.IsPublished;
 
@@ -158,6 +191,59 @@ public partial class CourseService(
 
         return Result.Success();
     }
+    public async Task<Result> BlockedUserAsync(Guid id, string userId, UserIdentifierRequest request, CancellationToken cancellationToken = default)
+    {
+        if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)
+            return CourseErrors.NotFound;
+
+        if (course.CreatedById != userId)
+            return UserErrors.UnAutherizeAccess;
+
+        var result = await _enrollmentService.GetByCourseIdAsync(id, request.Id, cancellationToken);
+
+        if (result.IsFailure)
+            return result.Error;
+
+        var userCourse = result.Value!;
+
+        if (userCourse.IsBlocked)
+            return CourseErrors.InvalidUserBlock;
+
+        userCourse.IsBlocked = true;
+
+        _context.UserCourses.Update(userCourse);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+    public async Task<Result> UnBlockedUserAsync(Guid id, string userId, UserIdentifierRequest request, CancellationToken cancellationToken = default)
+    {
+        if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)
+            return CourseErrors.NotFound;
+
+        if (course.CreatedById != userId)
+            return UserErrors.UnAutherizeAccess;
+
+        var result = await _enrollmentService.GetByCourseIdAsync(id, request.Id, cancellationToken);
+
+        if (result.IsFailure)
+            return result.Error;
+
+        var userCourse = result.Value!;
+
+        if (!userCourse.IsBlocked)
+            return CourseErrors.InvalidUserUnBlock;
+
+        userCourse.IsBlocked = false;
+
+        _context.UserCourses.Update(userCourse);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+    }
+    // Get Methods
     public async Task<Result<CourseResponse>> GetAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
 
@@ -209,48 +295,7 @@ public partial class CourseService(
 
         return response;
     }
-    public async Task<Result> BlockedUserAsync(Guid id, string userId, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
 
-        //var result = await _enrollmentService.GetByCourseIdAsync(id, userId, cancellationToken);
-
-        //if (result.IsFailure)
-        //    return result.Error;
-
-        //var userCourse = result.Value!;
-
-        //if (userCourse.IsBlocked)
-        //    return CourseErrors.InvalidUserBlock;
-
-        //userCourse.IsBlocked = true;
-
-        //_context.UserCourses.Update(userCourse);
-        //await _context.SaveChangesAsync(cancellationToken);
-
-        //return Result.Success();
-    }
-    public async Task<Result> UnBlockedUserAsync(Guid id, string userId, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-     
-        //var result = await _enrollmentService.GetByCourseIdAsync(id, userId, cancellationToken);
-        
-        //if (result.IsFailure)
-        //    return result.Error;
-
-        //var userCourse = result.Value!;
-
-        //if (!userCourse.IsBlocked)
-        //    return CourseErrors.InvalidUserBlock;
-
-        //userCourse.IsBlocked = false;
-
-        //_context.UserCourses.Update(userCourse);
-        //await _context.SaveChangesAsync(cancellationToken);
-
-        //return Result.Success();
-    }
 }
 public partial class CourseService
 {

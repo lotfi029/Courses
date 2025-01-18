@@ -1,15 +1,15 @@
 ﻿using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Tag;
+using Courses.Business.Contract.UploadFile;
+using Courses.Business.Contract.User;
 namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-
-
+[Authorize]
 public class CoursesController(ICourseService courseService) : ControllerBase
 {
     private readonly ICourseService _courseService = courseService;
     [HttpPost("")]
-    [Authorize]
     public async Task<IActionResult> Add([FromForm] AddCourseRequest request, CancellationToken cancellationToken)
     {
         var result = await _courseService.AddAsync(request, cancellationToken);
@@ -17,7 +17,6 @@ public class CoursesController(ICourseService courseService) : ControllerBase
         return result.IsSuccess ? CreatedAtAction(nameof(Get), new {id = result.Value}, null) : result.ToProblem();
     }
     [HttpPut("{id:guid}")]
-    [Authorize]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] UpdateCourseRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -26,8 +25,16 @@ public class CoursesController(ICourseService courseService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
+    [HttpPut("{id:guid}/update-thumbnail")]
+    public async Task<IActionResult> UpdateThumbnail([FromRoute] Guid id, [FromForm] UploadImageRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _courseService.UpdateThumbnailAsync(id, userId, request, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
     [HttpPut("{id:guid}/assign-category/{categoryId:guid}")]
-    [Authorize]
     public async Task<IActionResult> AssignCourseToCategories([FromRoute] Guid id,[FromRoute] Guid categoryId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -38,7 +45,6 @@ public class CoursesController(ICourseService courseService) : ControllerBase
 
     }
     [HttpPut("{id:guid}/unassign-category/{categoryId:guid}")]
-    [Authorize]
     public async Task<IActionResult> UnAssignCourseToCategories([FromRoute] Guid id, [FromRoute] Guid categoryId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -48,7 +54,6 @@ public class CoursesController(ICourseService courseService) : ControllerBase
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:guid}/assign-tags")]
-    [Authorize]
     public async Task<IActionResult> AssingTagsToCourse([FromRoute] Guid id, [FromBody] TagsRequest tags, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -58,7 +63,6 @@ public class CoursesController(ICourseService courseService) : ControllerBase
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:guid}/unassign-tags")]
-    [Authorize]
     public async Task<IActionResult> UnAssingTagsToCourse([FromRoute] Guid id, [FromBody] TagsRequest tags, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -66,13 +70,30 @@ public class CoursesController(ICourseService courseService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
-    [HttpPut("toggle-status/{id:guid}")]
-    [Authorize]
+    [HttpPut("{id:guid}/toggle-status")]
     public async Task<IActionResult> ToggleIsPublish([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
         var result = await _courseService.ToggleIsPublishAsync(userId, id, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPut("{id:guid}/block-user")]
+    public async Task<IActionResult> BlockUser([FromRoute] Guid id, [FromBody] UserIdentifierRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _courseService.BlockedUserAsync(id, userId, request, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPut("{id:guid}/unblock-user")]
+    public async Task<IActionResult> UnBlockUser([FromRoute] Guid id, [FromBody] UserIdentifierRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _courseService.UnBlockedUserAsync(id, userId, request, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }

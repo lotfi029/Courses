@@ -1,9 +1,10 @@
-﻿namespace Courses.Business.Contract.Course;
+﻿using Courses.Business.Contract.UploadFile;
+
+namespace Courses.Business.Contract.Course;
 
 public record UpdateCourseRequest (
     string Title,
     string Description,
-    string ThumbnailUrl,
     string Level,
     double Price
 );

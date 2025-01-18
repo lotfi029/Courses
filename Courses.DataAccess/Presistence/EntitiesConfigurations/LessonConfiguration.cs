@@ -7,9 +7,6 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
         builder.Property(e => e.Title)
             .HasMaxLength(450);
 
-        //builder.Property(e => e.VideoUrl)
-        //    .HasMaxLength(1000);
-
         builder.OwnsMany(e => e.Resources, recourses =>
         {
             recourses.WithOwner(e => e.Lesson)

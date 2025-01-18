@@ -21,9 +21,10 @@ public class UserErrors
     
     public static readonly Error EmailNotConfirmed
         = new("User.EmailNotConfimed", "this email is Not confirmed.", StatusCodes.Status400BadRequest);
-    public static readonly Error UnAutherizeUpdate
-        = new("User.UnAutherizeUpdate", "unautherized user", StatusCodes.Status401Unauthorized);
 
-    public static readonly Error UnAutherizeAdd
-        = new("User.UnAutherizeAdd", "unautherized user", StatusCodes.Status401Unauthorized);
+    public static readonly Error UnAutherizeAccess
+        = new(nameof(UnAutherizeAccess), "forbidden request", StatusCodes.Status403Forbidden);
+
+    //public static readonly Error UnAutherizeAdd
+    //    = new("User.UnAutherizeAdd", "unautherized user", StatusCodes.Status401Unauthorized);
 }
