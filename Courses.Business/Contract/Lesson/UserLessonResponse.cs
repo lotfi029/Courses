@@ -5,10 +5,10 @@ public record UserLessonResponse (
     string Title,
     Guid FileId,
     TimeSpan Duration,
-    bool IsComplete,
+    bool? IsComplete,
     TimeSpan? LastWatchedTimestamp,
-    DateTime StartDate,
-    DateTime LastInteractDate,
+    DateTime? StartDate,
+    DateTime? LastInteractDate,
     DateTime? FinshedDate,
     ICollection<RecourseResponse> Resources
     );

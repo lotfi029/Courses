@@ -20,6 +20,10 @@ public class MappingConfiguration : IRegister
         config.NewConfig<Lesson, LessonResponse>()
             .Map(dest => dest.Resources, src => src.Resources.Adapt<List<RecourseResponse>>());
 
+        config.NewConfig<(Lesson lesson, UserLesson userLesson), UserLessonResponse>()
+            .Map(dest => dest, src => src.lesson)
+            .Map(dest => dest, src => src.userLesson);
+
         config.NewConfig<(ApplicationUser user, IList<string> userRoles), UserResponse>()
             .Map(dest => dest, src => src.user)
             .Map(dest => dest.Roles, src => src.userRoles);
@@ -32,7 +36,6 @@ public class MappingConfiguration : IRegister
             .Map(dest => dest.NoStudent, src => src.NoEnrollment);
 
         //config.NewConfig<(Course course, UserCourse userCourse), UserCourseResponse>();
-            
 
 
         config.NewConfig<IEnumerable<string>, Tag>()

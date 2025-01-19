@@ -19,4 +19,7 @@ public class EnrollmentErrors
 
     public static readonly Error InvalidAdminEnrollment
         = new(nameof(InvalidAdminEnrollment),"you are the instructor of this course and you can't be enrolled as user.",StatusCodes.Status400BadRequest);
+
+    public static readonly Error BlockedEnrollment
+        = new(nameof(BlockedEnrollment), "your enrollment is block please contact your adminstrator.", StatusCodes.Status400BadRequest);
 }

@@ -3,9 +3,11 @@ using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.User;
+using Courses.DataAccess.Presistence.EntitiesConfigurations;
 
 namespace Courses.DataAccess.Services;
-public class EnrollmentService(ApplicationDbContext context) : IEnrollmentService
+public class EnrollmentService(
+    ApplicationDbContext context) : IEnrollmentService
 {
     private readonly ApplicationDbContext _context = context;
 
@@ -21,7 +23,7 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
         if (course.CreatedById == userId)
             return EnrollmentErrors.InvalidAdminEnrollment;
 
-        if (course.IsPublished)
+        if (!course.IsPublished)
             return EnrollmentErrors.CourseNotAvailable;
 
         if (!await _context.Users.AnyAsync(e => e.Id == userId, cancellationToken))
@@ -40,80 +42,53 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
         };
         await _context.UserCourses.AddAsync(userCourse, cancellationToken);
 
-        await AddUserLessonsAsync(courseId, userId, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
-    public async Task<Result> EnrollToLessonAsync(Guid lessonId, Guid courseId, string userId, CancellationToken cancellationToken = default)
+
+    public async Task<Result<UserLessonResponse>> GetLessonAsync(Guid id, Guid courseId, string userId, CancellationToken cancellationToken = default)
     {
-        var course = await _context.UserCourses
-            .SingleOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId, cancellationToken);
+        var userCourse = await _context.UserCourses.SingleOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId, cancellationToken);
 
-        if (course is null)
-            return EnrollmentErrors.NotFoundEnrollment;
+        if (userCourse is null)
+            return Result.Failure<UserLessonResponse>(EnrollmentErrors.NotFoundEnrollment);
 
-        if (!await _context.Lessons.AnyAsync(e => e.Id == lessonId, cancellationToken))
-            return LessonErrors.NotFound;
+        if (userCourse.IsBlocked)
+            return Result.Failure<UserLessonResponse>(EnrollmentErrors.BlockedEnrollment);
 
-        if (await _context.UserLessons.AnyAsync(e => e.LessonId == lessonId && e.UserId == userId, cancellationToken))
-            return EnrollmentErrors.DuplicatedLessonEnrollment;
+        if (await _context.Lessons.FindAsync([id], cancellationToken) is not { } lesson)
+            return Result.Failure<UserLessonResponse>(LessonErrors.NotFound);
 
-        var userLesson = new UserLesson
+        var userLesson = await _context.UserLessons.SingleOrDefaultAsync(e => e.LessonId == id && e.UserId == userId, cancellationToken);
+
+        if (userLesson is null)
         {
-            LessonId = lessonId,
-            UserId = userId
-        };
-
-        await _context.UserLessons.AddAsync(userLesson, cancellationToken);
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
-    }
-    private async Task<Result> AddUserLessonsAsync(
-        Guid courseId, 
-        string userId, 
-        CancellationToken cancellationToken = default)
-    {
-        var modules = await _context.Modules
-            .Where(e => e.CourseId == courseId)
-            .ToListAsync(cancellationToken);
-
-        if (modules is null)
-            return Result.Success();
-        List<UserLesson> userLessons = [];
-        foreach (var module in modules)
-        {
-            var lessons = await _context.Lessons
-                .Where(e => e.ModuleId == module.Id)
-                .Select(e => e.Id)
-                .ToListAsync(cancellationToken);
-
-            if (lessons is not null)
+            userLesson = new()
             {
-                foreach (var lesson in lessons)
-                    userLessons.Add(new()
-                    {
-                        UserId = userId,
-                        LessonId = lesson,
-                    });
-            }
-        }
-        await _context.AddRangeAsync(userLessons, cancellationToken);
-        
-        return Result.Success();
-    }
-    public async Task<Result<UserCourse>> GetByCourseIdAsync(Guid id, string userId, CancellationToken cancellationToken = default)
-    {
-        var course = await _context.UserCourses
-            .SingleOrDefaultAsync(e => e.CourseId == id && e.UserId == userId, cancellationToken);
+                LessonId = id,
+                UserId = userId,
+            };
 
-        return course is null
-            ? Result.Failure<UserCourse>(EnrollmentErrors.NotFoundEnrollment)
-            : Result.Success(course);
+            await _context.UserLessons.AddAsync(userLesson, cancellationToken);
+        }
+
+        userCourse.LastAccessLessonId = id;
+        userCourse.LastInteractDate = DateTime.UtcNow;
+        userCourse.LastWatchTimestamp = TimeSpan.Zero;
+
+        userLesson.LastInteractDate = DateTime.UtcNow;
+        userLesson.LastWatchedTimestamp = TimeSpan.Zero;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var response = (lesson, userLesson).Adapt<UserLessonResponse>();
+
+        return Result.Success(response);
     }
-    public async Task<Result<UserCourseResponse>> GetAsync(
+
+    public async Task<Result<UserCourseResponse>> GetCourseAsync(
         Guid courseId, 
         string userId, 
         CancellationToken cancellationToken = default)
@@ -141,6 +116,7 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
                 c.Rating,
                 c.Duration,
                 c.ThumbnailId,
+                userCourse.Progress,
                 userCourseId = userCourse.Id,
                 userCourse.IsCompleted,
                 userCourse.LastInteractDate,
@@ -164,6 +140,7 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
                 c.IsCompleted,
                 c.LastInteractDate,
                 c.FinshedDate,
+                c.Progress
             })
             .Select(c => new {
                 c.Key.Id,
@@ -177,32 +154,33 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
                 c.Key.IsCompleted,
                 c.Key.LastInteractDate,
                 c.Key.FinshedDate,
+                c.Key.Progress,
                 Tags = c.SelectMany(e => e.Tags).ToList(),
                 Categories = c.Select(e => e.Categories).Adapt<List<CategoryResponse>>()
 
             }).Single();
 
-        var userLessons = await _context.UserLessons
-            .Where(ul => ul.UserId == userId)
-            .Join(_context.Lessons,
-                ul => ul.LessonId,
-                l => l.Id,
-                (ul, l) => new
-                {
-                    l.ModuleId,
-                    LessonResponse = new UserLessonResponse( 
+        var userLessons = await (
+            from l in _context.Lessons
+            join ul in _context.UserLessons
+            on l.Id equals ul.LessonId into uls
+            from ul in uls.DefaultIfEmpty()
+            select new
+            {
+                l.ModuleId,
+                LessonResponse = new UserLessonResponse(
                         l.Id,
                         l.Title,
                         l.FileId,
                         l.Duration,
-                        ul.IsComplete,
-                        ul.LastWatchedTimestamp,
-                        ul.StartDate,
-                        ul.LastInteractDate,
-                        ul.FinshedDate,
+                        ul == null ? null : ul.IsComplete,
+                        ul.LastWatchedTimestamp ?? null,
+                        ul == null ? null : ul.StartDate,
+                        ul == null ? null : ul.LastInteractDate,
+                        ul.FinshedDate ?? null,
                         l.Resources.Adapt<List<RecourseResponse>>()
                     )
-                })
+            })
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
@@ -232,6 +210,7 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
             course.ThumbnailId,
             course.Duration,
             course.Rating,
+            course.Progress,
             course.userCourseId,
             course.IsCompleted,
             course.LastInteractDate,
@@ -243,37 +222,66 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
 
         return Result.Success(respons);
     }
+
+    
     public async Task<IEnumerable<UserCourseResponse>> GetMyCoursesAsync(string userId, CancellationToken cancellationToken = default)
     {
         var courses = await (
             from c in _context.Courses
+            join cCat in _context.CourseCategories
+            on c.Id equals cCat.CourseId into cCats
+            from cCat in cCats.DefaultIfEmpty()
+            join cats in _context.Categories 
+            on cCat.Id equals cats.Id into categories
+            from category in categories.DefaultIfEmpty()
             join uc in _context.UserCourses
             on c.Id equals uc.CourseId
             where uc.UserId == userId
-            select new UserCourseResponse(
+            select new
+            {
                 c.Id,
                 c.Title,
                 c.Description,
                 c.Level,
                 c.ThumbnailId,
-                c.Duration, 
+                c.Duration,
                 c.Rating,
-                uc.Id,
+                uc.Progress,
+                userCourseId = uc.Id,
                 uc.IsCompleted,
                 uc.LastInteractDate,
                 uc.FinshedDate,
-                null,
-                null,
-                null
-                )
-            ).ToListAsync(cancellationToken);
+                category = category.Adapt<CategoryResponse>(),
+                tags = c.Tags.Select(e => e.Title)
+            })
+            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.ThumbnailId, x.Duration, x.Rating, x.Progress, x.userCourseId, x.IsCompleted, x.LastInteractDate, x.FinshedDate })
+            .Select(c => new UserCourseResponse(
+                c.Key.Id,
+                c.Key.Title,
+                c.Key.Description,
+                c.Key.Level,
+                c.Key.ThumbnailId,
+                c.Key.Duration,
+                c.Key.Rating,
+                c.Key.Progress,
+                c.Key.userCourseId,
+                c.Key.IsCompleted,
+                c.Key.LastInteractDate,
+                c.Key.FinshedDate,
+                null!,
+                c.SelectMany(e => e.tags).ToList(),
+                c.Select(e => e.category).ToList()
+            ))
+            .ToListAsync(cancellationToken);
 
         if (courses is null)
             return [];
             
         return courses;
     }
-    public async Task<IEnumerable<CourseResponse>> GetAllCoursesAsync( CancellationToken cancellationToken = default)
+    
+    // unauth + unsub
+    public async Task<IEnumerable<CourseResponse>> GetAllCoursesAsync(CancellationToken cancellationToken = default)
     {
         var courses = await (
             from c in _context.Courses
@@ -284,8 +292,8 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
             on cc.CategoryId equals cat.Id into cat
             from cats in cat.DefaultIfEmpty()
             where c.IsPublished
-            select new CourseResponse
-            (
+            select new
+            {
                 c.Id,
                 c.Title,
                 c.Description,
@@ -295,16 +303,28 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
                 c.Rating,
                 c.IsPublished,
                 c.Price,
+                Tags = c.Tags.Select(e => e.Title),
+                Categories = cats.Adapt<CategoryResponse>()
+            })
+            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.ThumbnailId, x.Duration, x.Rating, x.IsPublished, x.Price, })
+            .Select(c => new CourseResponse( 
+                c.Key.Id,
+                c.Key.Title,
+                c.Key.Description,
+                c.Key.Level,
+                c.Key.ThumbnailId,
+                c.Key.Duration,
+                c.Key.Rating,
+                true,
+                c.Key.Price,
                 0,
                 0,
-                c.Tags.Select(e => e.Title),
-                cat.Adapt<List<CategoryResponse>>(),
-                null!
-            )).ToListAsync();
+                c.SelectMany(e => e.Tags),
+                c.Select(e => e.Categories).ToList(),
+                null!))
+            .ToListAsync(cancellationToken);
 
         
-
-
         return courses;
     }
     public async Task<(int NoCompleted, int NoEnrollment)> GetCourseInfoAsync(Guid courseId, CancellationToken cancellationToken = default)
@@ -342,6 +362,15 @@ public class EnrollmentService(ApplicationDbContext context) : IEnrollmentServic
         return users;
     }
     
+    public async Task<Result<UserCourse>> GetByCourseIdAsync(Guid id, string userId, CancellationToken cancellationToken = default)
+    {
+        var course = await _context.UserCourses
+            .SingleOrDefaultAsync(e => e.CourseId == id && e.UserId == userId, cancellationToken);
+
+        return course is null
+            ? Result.Failure<UserCourse>(EnrollmentErrors.NotFoundEnrollment)
+            : Result.Success(course);
+    }
     // TODO:
     // How to update lastvideowtched 
     // how to update resume video

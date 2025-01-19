@@ -5,7 +5,6 @@ using Courses.Business.Contract.Tag;
 using Courses.Business.Contract.UploadFile;
 using Courses.Business.Contract.User;
 
-
 namespace Courses.DataAccess.Services;
 public partial class CourseService(
     ApplicationDbContext context,
@@ -44,12 +43,12 @@ public partial class CourseService(
         return Result.Success(course.Id);
     }
 
-    public async Task<Result> UpdateAsync(string userid, Guid id, UpdateCourseRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> UpdateAsync(Guid id, string userId, UpdateCourseRequest request, CancellationToken cancellationToken = default)
     {
         if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)
             return CourseErrors.NotFound;
 
-        if (course.CreatedById != userid)
+        if (course.CreatedById != userId)
             return UserErrors.UnAutherizeAccess;
 
         course = request.Adapt(course);
@@ -74,7 +73,7 @@ public partial class CourseService(
 
         return Result.Success();
     }
-    public async Task<Result> ToggleIsPublishAsync(string userid, Guid id, CancellationToken cancellationToken = default)
+    public async Task<Result> ToggleIsPublishAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
 
         var course = await _context.Courses
@@ -85,7 +84,7 @@ public partial class CourseService(
         if (course is null)
             return CourseErrors.NotFound;
 
-        if (course.CreatedById != userid)
+        if (course.CreatedById != userId)
             return UserErrors.UnAutherizeAccess;
 
         var modules = await _context.Modules
@@ -110,12 +109,13 @@ public partial class CourseService(
         return Result.Success();
     }
 
-    public async Task<Result> AssignCourseToCategoryAsync(string userid, Guid id, Guid categoryId, CancellationToken cancellationToken = default)
+    public async Task<Result> AssignCourseToCategoryAsync(Guid id, string userId, Guid categoryId, CancellationToken cancellationToken = default)
     {
-        var course = await _context.Courses.FindAsync([id], cancellationToken);
-
-        if (course is null || course.CreatedById != userid)
+        if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)
             return CourseErrors.NotFound;
+
+        if (course.CreatedById != userId)
+            return UserErrors.UnAutherizeAccess;
 
         if (!await _context.Categories.AnyAsync(e => e.Id == categoryId, cancellationToken))
             return Result.Failure(CategoryErrors.NotFound);
@@ -133,12 +133,13 @@ public partial class CourseService(
         return Result.Success();
     }
     
-    public async Task<Result> UnAssignCourseToCategoriesAsync(string userid, Guid id, Guid categoryId, CancellationToken cancellationToken = default)
+    public async Task<Result> UnAssignCourseToCategoriesAsync(Guid id, string userId, Guid categoryId, CancellationToken cancellationToken = default)
     {
-        var course = await _context.Courses.FindAsync([id], cancellationToken);
-
-        if (course is null || course.CreatedById != userid)
+        if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)
             return CourseErrors.NotFound;
+
+        if (course.CreatedById != userId)
+            return UserErrors.UnAutherizeAccess;
 
         if (await _context.CourseCategories.SingleOrDefaultAsync(e => e.CourseId == id && e.CategoryId == categoryId, cancellationToken) is not { } courseCategory)
             return CourseErrors.InvalidCategory;
@@ -148,10 +149,13 @@ public partial class CourseService(
 
         return Result.Success();
     }
-    public async Task<Result> AssignCourseToTagsAsync(string userid, Guid id, TagsRequest tags, CancellationToken cancellationToken = default)
+    public async Task<Result> AssignCourseToTagsAsync(Guid id, string userId, TagsRequest tags, CancellationToken cancellationToken = default)
     {
         if (await _context.Courses.Include(e => e.Tags).SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } course)
             return CourseErrors.NotFound;
+
+        if (course.CreatedById != userId)
+            return UserErrors.UnAutherizeAccess;
 
         var tagsDb = _context.Tags
             .Where(e => tags.Tags.Contains(e.Title));
@@ -172,10 +176,13 @@ public partial class CourseService(
         return Result.Success();
     }
 
-    public async Task<Result> UnAssignCourseToTagsAsync(string userid, Guid id, TagsRequest tags, CancellationToken cancellationToken = default)
+    public async Task<Result> UnAssignCourseToTagsAsync(Guid id, string userId, TagsRequest tags, CancellationToken cancellationToken = default)
     {
         if (await _context.Courses.Include(e => e.Tags).SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } course)
             return Result.Failure(CourseErrors.NotFound);
+
+        if (course.CreatedById != userId)
+            return UserErrors.UnAutherizeAccess;
 
         var tagsExists = !tags.Tags.Except(course.Tags.Select(e => e.Title), StringComparer.OrdinalIgnoreCase).Any();
 

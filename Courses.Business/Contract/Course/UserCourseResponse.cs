@@ -10,6 +10,7 @@ public record UserCourseResponse (
     Guid ThumbnailId,
     TimeSpan? Duration,
     float Rating,
+    float Progress,
     Guid UserCourseId,
     bool IsCompleted,
     DateTime LastInteractDate,

@@ -21,7 +21,7 @@ public class CoursesController(ICourseService courseService) : ControllerBase
     {
         var userId = User.GetUserId()!;
 
-        var result = await _courseService.UpdateAsync(userId,id, request, cancellationToken);
+        var result = await _courseService.UpdateAsync(id, userId, request, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
@@ -39,7 +39,7 @@ public class CoursesController(ICourseService courseService) : ControllerBase
     {
         var userId = User.GetUserId()!;
 
-        var result = await _courseService.AssignCourseToCategoryAsync(userId, id, categoryId, cancellationToken);
+        var result = await _courseService.AssignCourseToCategoryAsync(id, userId, categoryId, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
 
@@ -49,7 +49,7 @@ public class CoursesController(ICourseService courseService) : ControllerBase
     {
         var userId = User.GetUserId()!;
 
-        var result = await _courseService.UnAssignCourseToCategoriesAsync(userId, id, categoryId, cancellationToken);
+        var result = await _courseService.UnAssignCourseToCategoriesAsync(id, userId, categoryId, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
@@ -58,7 +58,7 @@ public class CoursesController(ICourseService courseService) : ControllerBase
     {
         var userId = User.GetUserId()!;
         
-        var result = await _courseService.AssignCourseToTagsAsync(userId, id, tags, cancellationToken);
+        var result = await _courseService.AssignCourseToTagsAsync(id, userId, tags, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
@@ -66,7 +66,7 @@ public class CoursesController(ICourseService courseService) : ControllerBase
     public async Task<IActionResult> UnAssingTagsToCourse([FromRoute] Guid id, [FromBody] TagsRequest tags, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
-        var result = await _courseService.UnAssignCourseToTagsAsync(userId, id, tags, cancellationToken);
+        var result = await _courseService.UnAssignCourseToTagsAsync(id, userId, tags, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
@@ -75,7 +75,7 @@ public class CoursesController(ICourseService courseService) : ControllerBase
     {
         var userId = User.GetUserId()!;
 
-        var result = await _courseService.ToggleIsPublishAsync(userId, id, cancellationToken);
+        var result = await _courseService.ToggleIsPublishAsync(id, userId, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }

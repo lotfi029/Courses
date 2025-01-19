@@ -1,6 +1,4 @@
 ﻿using Courses.Business.Contract.User;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Courses.Presentation.Controllers;
 [Route("u")]

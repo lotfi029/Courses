@@ -64,7 +64,6 @@ public class FileSerivce(
     {
         var file = await _context.UploadedFiles.FindAsync([id], cancellationToken);
 
-
         if (file is null)
             return (null,  string.Empty, string.Empty);
 

@@ -1,4 +1,6 @@
-﻿namespace Courses.Business.Entities;
+﻿using Microsoft.AspNetCore.SignalR;
+
+namespace Courses.Business.Entities;
 
 public class UserCourse
 {
@@ -7,13 +9,14 @@ public class UserCourse
     public Guid CourseId { get; set; }
     public Guid? LastAccessLessonId { get; set; }
     public TimeSpan? LastWatchTimestamp { get; set; }
+    public float Progress { get; set; }
     public bool IsCompleted { get; set; }
     public bool IsBlocked { get; set; }
     public DateTime StartDate { get; set; } = DateTime.UtcNow;
     public DateTime LastInteractDate { get; set; } = DateTime.UtcNow;
     public DateTime? FinshedDate { get; set; }
-    public Course Course { get; set; } = default!;
-    public ApplicationUser User { get; set; } = default!;
-    public Lesson LastAccessLesson { get; set; } = default!;
+    public virtual Course Course { get; set; } = default!;
+    public virtual ApplicationUser User { get; set; } = default!;
+    public virtual Lesson LastAccessLesson { get; set; } = default!;
     
 }
