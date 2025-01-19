@@ -69,6 +69,7 @@ public class EnrollmentService(
             {
                 LessonId = id,
                 UserId = userId,
+                UserCourseId = userCourse.Id
             };
 
             await _context.UserLessons.AddAsync(userLesson, cancellationToken);
@@ -227,21 +228,30 @@ public class EnrollmentService(
     {
         if (await _context.UserCourses.SingleOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId, cancellationToken) is not { } userCourse)
             return EnrollmentErrors.NotFoundEnrollment;
-        
+
         if (await _context.UserLessons.SingleOrDefaultAsync(e => e.LessonId == id && e.UserId == userId, cancellationToken) is not { } userLesson)
             return EnrollmentErrors.NotFoundEnrollment;
+
+        if (userCourse.IsCompleted || userLesson.IsComplete)
+            return Result.Success();
 
         var lessonCnt = await _context.Modules
             .Where(e => e.CourseId == courseId)
             .Join(_context.Lessons, m => m.Id, l => l.ModuleId, (m, l) => l.Id)
             .CountAsync(cancellationToken);
-        
+
+        var completeLesson = await _context.UserLessons
+            .CountAsync(e => e.UserCourseId == userCourse.Id && e.UserId == userId, cancellationToken);
+        var p = (float)(completeLesson + 1) / (float)lessonCnt;
+        userCourse.Progress = p;
 
         userLesson.IsComplete = true;
         userLesson.FinshedDate = DateTime.UtcNow;
         userLesson.LastInteractDate = DateTime.UtcNow;
+        
+        await _context.SaveChangesAsync(cancellationToken);
 
-
+        return Result.Success();
     }
     public async Task<IEnumerable<UserCourseResponse>> GetMyCoursesAsync(string userId, CancellationToken cancellationToken = default)
     {

@@ -7,6 +7,7 @@ public interface IEnrollmentService
 {
     Task<Result> EnrollToCourseAsync(Guid courseId, string userId, CancellationToken cancellationToken = default);
     Task<Result<UserLessonResponse>> GetLessonAsync(Guid id, Guid courseId, string userId, CancellationToken cancellationToken = default);
+    Task<Result> CompleteLessonAsync(Guid id, Guid courseId, string userId, CancellationToken cancellationToken = default);
     Task<Result<UserCourseResponse>> GetCourseAsync(Guid courseId, string userId, CancellationToken token = default);
     Task<IEnumerable<UserCourseResponse>> GetMyCoursesAsync(string userId, CancellationToken cancellationToken = default);
     Task<(int NoCompleted, int NoEnrollment)> GetCourseInfoAsync(Guid courseId, CancellationToken cancellationToken = default);

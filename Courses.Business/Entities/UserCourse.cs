@@ -18,5 +18,6 @@ public class UserCourse
     public Course Course { get; set; } = default!;
     public ApplicationUser User { get; set; } = default!;
     public Lesson LastAccessLesson { get; set; } = default!;
+    public ICollection<UserLesson> UserLessons { get; set; } = [];
     
 }
