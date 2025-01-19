@@ -4,7 +4,10 @@ public class EnrollmentErrors
 {
     public static readonly Error InvalidEnrollment 
         = new(nameof(InvalidEnrollment), "Invalid Enrollment", StatusCodes.Status400BadRequest);
-    
+
+    public static readonly Error InvalidLessonComplete
+        = new(nameof(InvalidLessonComplete), "watch lesson first to be able complete it", StatusCodes.Status400BadRequest);
+
     public static readonly Error DuplicatedCourseEnrollment
         = new(nameof(DuplicatedCourseEnrollment), "you have enrollment already", StatusCodes.Status400BadRequest);
     

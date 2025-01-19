@@ -223,7 +223,26 @@ public class EnrollmentService(
         return Result.Success(respons);
     }
 
-    
+    public async Task<Result> CompleteLessonAsync(Guid id, Guid courseId, string userId, CancellationToken cancellationToken = default)
+    {
+        if (await _context.UserCourses.SingleOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId, cancellationToken) is not { } userCourse)
+            return EnrollmentErrors.NotFoundEnrollment;
+        
+        if (await _context.UserLessons.SingleOrDefaultAsync(e => e.LessonId == id && e.UserId == userId, cancellationToken) is not { } userLesson)
+            return EnrollmentErrors.NotFoundEnrollment;
+
+        var lessonCnt = await _context.Modules
+            .Where(e => e.CourseId == courseId)
+            .Join(_context.Lessons, m => m.Id, l => l.ModuleId, (m, l) => l.Id)
+            .CountAsync(cancellationToken);
+        
+
+        userLesson.IsComplete = true;
+        userLesson.FinshedDate = DateTime.UtcNow;
+        userLesson.LastInteractDate = DateTime.UtcNow;
+
+
+    }
     public async Task<IEnumerable<UserCourseResponse>> GetMyCoursesAsync(string userId, CancellationToken cancellationToken = default)
     {
         var courses = await (
@@ -338,7 +357,6 @@ public class EnrollmentService(
 
         return (NoCompleted, courses.Count - NoCompleted);
     }
-
     public async Task<IEnumerable<UserResponse>> GetUsersInCourseAsync(Guid id, CancellationToken cancellationToken = default)
     {
 
@@ -361,7 +379,6 @@ public class EnrollmentService(
 
         return users;
     }
-    
     public async Task<Result<UserCourse>> GetByCourseIdAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
         var course = await _context.UserCourses

@@ -15,8 +15,8 @@ public class UserCourse
     public DateTime StartDate { get; set; } = DateTime.UtcNow;
     public DateTime LastInteractDate { get; set; } = DateTime.UtcNow;
     public DateTime? FinshedDate { get; set; }
-    public virtual Course Course { get; set; } = default!;
-    public virtual ApplicationUser User { get; set; } = default!;
-    public virtual Lesson LastAccessLesson { get; set; } = default!;
+    public Course Course { get; set; } = default!;
+    public ApplicationUser User { get; set; } = default!;
+    public Lesson LastAccessLesson { get; set; } = default!;
     
 }
