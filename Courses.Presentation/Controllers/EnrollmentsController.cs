@@ -1,5 +1,6 @@
 ﻿using Azure.Core;
 using FFmpeg.AutoGen;
+using Microsoft.VisualBasic;
 
 namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
@@ -27,6 +28,16 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : Contr
         var result = await _enrollmentService.GetLessonAsync(lessonId, courseId, userId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+    }
+    [HttpPut("{courseId:guid}/complete")]
+    [Authorize]
+    public async Task<IActionResult> CompleteLesson([FromRoute] Guid courseId, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _enrollmentService.CompleteCourseAsync(courseId, userId, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{courseId:guid}/lesson/{lessonId:guid}/completed")]
     public async Task<IActionResult> CompleteLesson([FromRoute] Guid lessonId, [FromRoute] Guid courseId, CancellationToken cancellationToken)

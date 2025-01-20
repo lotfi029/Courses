@@ -253,6 +253,15 @@ public class EnrollmentService(
 
         return Result.Success();
     }
+    public async Task<Result> CompleteCourseAsync(Guid courseId, string userId, CancellationToken cancellationToken = default)
+    {
+        if (await _context.UserCourses.Include(e => e.UserLessons).SingleOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId, cancellationToken) is not { } userCourse)
+            return EnrollmentErrors.NotFoundEnrollment;
+
+        var userLessons = userCourse.UserLessons.ToList();
+
+        return Result.Success();
+    } 
     public async Task<IEnumerable<UserCourseResponse>> GetMyCoursesAsync(string userId, CancellationToken cancellationToken = default)
     {
         var courses = await (
