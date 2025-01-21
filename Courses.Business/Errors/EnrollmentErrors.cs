@@ -25,4 +25,7 @@ public class EnrollmentErrors
 
     public static readonly Error BlockedEnrollment
         = new(nameof(BlockedEnrollment), "your enrollment is block please contact your adminstrator.", StatusCodes.Status400BadRequest);
+
+    public static readonly Error InvalidGettingLesson
+        = new(nameof(InvalidGettingLesson), "must be watched the prevouse lesson to be able to watch this lesson", StatusCodes.Status400BadRequest);
 }

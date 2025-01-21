@@ -3,7 +3,7 @@ using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.User;
-using Courses.DataAccess.Presistence.EntitiesConfigurations;
+using System.Reflection.Metadata;
 
 namespace Courses.DataAccess.Services;
 public class EnrollmentService(
@@ -58,23 +58,56 @@ public class EnrollmentService(
         if (userCourse.IsBlocked)
             return Result.Failure<UserLessonResponse>(EnrollmentErrors.BlockedEnrollment);
 
-        if (await _context.Lessons.FindAsync([id], cancellationToken) is not { } lesson)
-            return Result.Failure<UserLessonResponse>(LessonErrors.NotFound);
+        var userLessons = await _context.UserCourses
+            .AsNoTracking()
+            .Where(e => e.CourseId == courseId && userId == e.UserId)
+            .ToListAsync(cancellationToken);
 
-        var userLesson = await _context.UserLessons.SingleOrDefaultAsync(e => e.LessonId == id && e.UserId == userId, cancellationToken);
-
-        if (userLesson is null)
-        {
-            userLesson = new()
+        var orderLessons = await (
+            from m in _context.Modules
+            join l in _context.Lessons
+            on m.Id equals l.ModuleId into ls
+            where m.CourseId == courseId
+            select new
             {
-                LessonId = id,
-                UserId = userId,
-                UserCourseId = userCourse.Id
-            };
+                m.Id,
+                m.Order,
+                lessons = ls.OrderBy(e => e.Order).ToList()
+            })
+            .OrderBy(e => e.Order)
+            .ToListAsync(cancellationToken);
 
-            await _context.UserLessons.AddAsync(userLesson, cancellationToken);
+
+        Lesson? nextLesson = null;
+        Lesson? curLesson = null;
+        foreach (var module in orderLessons)
+        {
+            foreach (var l in module.lessons)
+            {
+                if (userLessons.Select(e => e.Id).Contains(l.Id) && nextLesson is null)
+                {
+                    nextLesson = l;
+                    break;
+                }
+            }
+
+            curLesson = module.lessons.SingleOrDefault(e => e.Id == id);
+
+            if (nextLesson is not null && curLesson is not null)
+                break;
         }
 
+
+        var userLesson = userCourse.UserLessons.SingleOrDefault(e => e.Id == id);
+        
+        userLesson ??= new UserLesson
+        {
+            LessonId = id,
+            UserId = userId
+        };
+
+        Lesson lesson = new();
+        
         userCourse.LastAccessLessonId = id;
         userCourse.LastInteractDate = DateTime.UtcNow;
         userCourse.LastWatchTimestamp = TimeSpan.Zero;
