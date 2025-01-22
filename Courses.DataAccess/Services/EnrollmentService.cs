@@ -3,7 +3,11 @@ using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.User;
+using Serilog;
+using System.Diagnostics.Eventing.Reader;
 using System.Reflection.Metadata;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Courses.DataAccess.Services;
 public class EnrollmentService(
@@ -57,10 +61,14 @@ public class EnrollmentService(
 
         if (userCourse.IsBlocked)
             return Result.Failure<UserLessonResponse>(EnrollmentErrors.BlockedEnrollment);
+        
+        
+        if (await _context.Lessons.FindAsync([id], cancellationToken) is not { } lesson)
+            return Result.Failure<UserLessonResponse>(LessonErrors.NotFound);
 
-        var userLessons = await _context.UserCourses
+        var userLessons = await _context.UserLessons
             .AsNoTracking()
-            .Where(e => e.CourseId == courseId && userId == e.UserId)
+            .Where(e => e.UserCourseId == userCourse.Id && userId == e.UserId)
             .ToListAsync(cancellationToken);
 
         var orderLessons = await (
@@ -74,47 +82,55 @@ public class EnrollmentService(
                 m.Order,
                 lessons = ls.OrderBy(e => e.Order).ToList()
             })
+            .AsNoTracking()
             .OrderBy(e => e.Order)
+            .AsSplitQuery()
             .ToListAsync(cancellationToken);
 
 
-        Lesson? nextLesson = null;
-        Lesson? curLesson = null;
-        foreach (var module in orderLessons)
+        Lesson nextLesson = null!;
+        if (userLessons.Select(e => e.LessonId).Contains(id))
+            nextLesson = lesson;
+        else
         {
-            foreach (var l in module.lessons)
+            foreach (var module in orderLessons)
             {
-                if (userLessons.Select(e => e.Id).Contains(l.Id) && nextLesson is null)
+                foreach (var l in module.lessons)
                 {
-                    nextLesson = l;
-                    break;
+                    if (!userLessons.Where(e => e.IsComplete).Select(e => e.LessonId).Contains(l.Id))
+                    {
+                        nextLesson = l;
+                        break;
+                    }
                 }
+                if (nextLesson is not null)
+                    break;
             }
-
-            curLesson = module.lessons.SingleOrDefault(e => e.Id == id);
-
-            if (nextLesson is not null && curLesson is not null)
-                break;
         }
 
+        var userLesson = userLessons.SingleOrDefault(e => e.LessonId == id && e.UserId == userId);
 
-        var userLesson = userCourse.UserLessons.SingleOrDefault(e => e.Id == id);
-        
-        userLesson ??= new UserLesson
+        if (id != nextLesson!.Id)
+            return Result.Failure<UserLessonResponse>(EnrollmentErrors.InvalidGettingLesson);
+
+        if (userLesson is null)
         {
-            LessonId = id,
-            UserId = userId
-        };
+            userLesson = new UserLesson
+            {
+                LessonId = id,
+                UserId = userId,
+                UserCourseId = userCourse.Id
+            };
 
-        Lesson lesson = new();
-        
+            await _context.AddAsync(userLesson,cancellationToken);
+        }
+
         userCourse.LastAccessLessonId = id;
         userCourse.LastInteractDate = DateTime.UtcNow;
         userCourse.LastWatchTimestamp = TimeSpan.Zero;
 
         userLesson.LastInteractDate = DateTime.UtcNow;
         userLesson.LastWatchedTimestamp = TimeSpan.Zero;
-
         await _context.SaveChangesAsync(cancellationToken);
 
         var response = (lesson, userLesson).Adapt<UserLessonResponse>();

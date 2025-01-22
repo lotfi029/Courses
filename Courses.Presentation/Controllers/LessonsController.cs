@@ -1,5 +1,6 @@
 ﻿using Courses.Business.Contract.Lesson;
 using Courses.Business.Entities;
+using System.Security.Claims;
 
 namespace Courses.Presentation.Controllers;
 [Route("api/{courseId:guid}/modules/{moduleId:guid}/[controller]")]
