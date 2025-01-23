@@ -1,4 +1,5 @@
-﻿using Courses.Business.Contract.Module;
+﻿using Courses.Business.Contract.Lesson;
+using Courses.Business.Contract.Module;
 using Courses.DataAccess.Presistence;
 
 namespace Courses.DataAccess.Services;
@@ -14,12 +15,24 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
         if (course.CreatedById != userId)
             return Result.Failure<Guid>(CourseErrors.NotFound);
 
-        if (await _context.Modules.AnyAsync(e => e.CourseId == courseId && request.Title == e.Title, cancellationToken))
-            return Result.Failure<Guid>(ModuleErrors.DuplicatedTitle);
+        var modules = await _context.Modules
+            .Where(e => e.CourseId == courseId)
+            .ToListAsync(cancellationToken);
+
+        int maxOrder = 0;
+
+        if (modules?.Count > 1)
+        {
+            if (modules.Any(e => e.CourseId == courseId && e.Title == request.Title))
+                return Result.Failure<Guid>(ModuleErrors.DuplicatedTitle);
+
+            maxOrder = modules.Max(e => e.Order);
+        }
 
         var module = request.Adapt<CourseModule>();
 
         module.CourseId = courseId;
+        module.Order = maxOrder + 1;
 
         await _context.Modules.AddAsync(module, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
@@ -28,32 +41,68 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
     }
     public async Task<Result> UpdateAsync(Guid id, ModuleRequest request, string userId, CancellationToken cancellationToken = default)
     {
-        //if (await _context.Modules.FindAsync([id], cancellationToken) is not { } module)
-        //    return Result.Failure(ModuleErrors.NotFound);
+        if (await _context.Modules.FindAsync([id], cancellationToken) is not { } module)
+            return Result.Failure(ModuleErrors.NotFound);
 
-        //if (module.CreatedById != userId)
-        //    return Result.Failure(UserErrors.UnAutherizeUpdate);
+        if (module.CreatedById != userId)
+            return Result.Failure(UserErrors.UnAutherizeAccess);
 
-        //module = request.Adapt(module);
+        if (request.Title != module.Title && await _context.Modules.AnyAsync(e => e.Id != id && e.CourseId == e.CourseId && e.Title == request.Title, cancellationToken))
+            return ModuleErrors.DuplicatedTitle;
 
-        //await _context.SaveChangesAsync(cancellationToken);
+        module = request.Adapt(module);
 
-        // TODO:
-        var result = await _context.Modules
-            .Where(e => e.Id == id)
-            .ExecuteUpdateAsync(setters =>
-                setters
-                .SetProperty(e => e.Description, request.Description)
-                .SetProperty(e => e.Title, request.Title)
-                .SetProperty(e => e.Order, request.Order),
-                cancellationToken
-            );
-
-        if (result == 0)
-            return ModuleErrors.NotFound;
-
+        await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
+    }
+    public async Task<Result> UpdateOrderAsync(Guid id, string userId, UpdateOrderRequest request ,CancellationToken cancellationToken = default)
+    {
+        if (await _context.Modules.OrderBy(e => e.Order).ToListAsync(cancellationToken) is not { } modules)
+            return Result.Failure(ModuleErrors.NotFound);
+
+        if (modules.Find(e => e.Id == id) is not { } module)
+            return Result.Failure(ModuleErrors.NotFound);
+
+        if (module.CreatedById != userId)
+            return Result.Failure(UserErrors.UnAutherizeAccess);
+
+        if (request.Order == module.Order)
+            return Result.Success();
+
+        var lessonCnt = modules.Count;
+        var oldOrder = module.Order;
+        var newOrder = request.Order;
+
+        if (newOrder > lessonCnt)
+            newOrder = lessonCnt;
+        else if (newOrder < 1)
+            newOrder = 1;
+
+        if (newOrder > oldOrder) {
+            foreach(var mdl in modules)
+            {
+                if (mdl.Id == module.Id)
+                    mdl.Order = newOrder;
+                else if (mdl.Order <= newOrder && mdl.Order >= oldOrder)
+                    mdl.Order -= 1;
+            }
+        }
+        else {
+            foreach (var mdl in modules)
+            {
+                if (mdl.Id == module.Id)
+                    mdl.Order = newOrder;
+                else if (mdl.Order >= newOrder && mdl.Order <= oldOrder)
+                    mdl.Order += 1;
+            }
+        }
+
+        
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
+
     }
     public async Task<Result> ToggleStatusAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {

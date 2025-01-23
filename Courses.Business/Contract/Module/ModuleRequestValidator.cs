@@ -11,7 +11,5 @@ public sealed class ModuleRequestValidator : AbstractValidator<ModuleRequest>
             .NotEmpty()
             .Length(3, 1000);
 
-        RuleFor(e => e.Order)
-            .NotEmpty();
     }
 }

@@ -1,8 +1,9 @@
-﻿using Courses.Business.Contract.Course;
+﻿using Courses.Business.Contract.Category;
+using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.User;
-using Mapster;
+
 
 namespace Courses.Business.Mapping;
 public class MappingConfiguration : IRegister
@@ -35,7 +36,10 @@ public class MappingConfiguration : IRegister
             .Map(dest => dest.NoCompleted, src => src.NoCompleted)
             .Map(dest => dest.NoStudent, src => src.NoEnrollment);
 
-        //config.NewConfig<(Course course, UserCourse userCourse), UserCourseResponse>();
+        config.NewConfig<(Course course, List<CategoryResponse> categories, List<Tag> tags), RegularUserCourseResponse>()
+            .Map(dest => dest.Categories, src => src.categories)
+            .Map(dest => dest.Tags, src => src.tags.Select(e => e.Title))
+            .Map(dest => dest, src => src.course);
 
 
         config.NewConfig<IEnumerable<string>, Tag>()

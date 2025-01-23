@@ -28,4 +28,7 @@ public class EnrollmentErrors
 
     public static readonly Error InvalidGettingLesson
         = new(nameof(InvalidGettingLesson), "must be watched the prevouse lesson to be able to watch this lesson", StatusCodes.Status400BadRequest);
+
+    public static readonly Error InvalidCompleteCourse
+        = new(nameof(InvalidCompleteCourse), "must watch all lesson the be able to complete all lesson", StatusCodes.Status400BadRequest);
 }

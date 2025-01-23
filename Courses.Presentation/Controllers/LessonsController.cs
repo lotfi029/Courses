@@ -29,7 +29,7 @@ public class LessonsController(ILessonService lessonService) : ControllerBase
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:guid}/update-order")]
-    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateLessonOrderRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateOrderRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 

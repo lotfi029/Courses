@@ -7,4 +7,5 @@ public class ModuleErrors
 
     public static readonly Error DuplicatedTitle
         = new("Module.DuplicatedTitle", "Another module with same title", StatusCodes.Status409Conflict);
+
 }

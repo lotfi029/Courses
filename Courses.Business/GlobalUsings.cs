@@ -7,3 +7,4 @@ global using Courses.Business.Abstract.Constants;
 global using Courses.Business.Contract.Auth;
 global using Courses.Business.Entities;
 global using Courses.Business.Abstract;
+global using Mapster;

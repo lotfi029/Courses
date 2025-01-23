@@ -1,8 +1,8 @@
 ﻿namespace Courses.Business.Contract.Lesson;
 
-public sealed class UpdateLessonOrderValidator : AbstractValidator<UpdateLessonOrderRequest>
+public sealed class UpdateOrderValidator : AbstractValidator<UpdateOrderRequest>
 {
-    public UpdateLessonOrderValidator()
+    public UpdateOrderValidator()
     {
         RuleFor(e => e.Order)
             .NotEmpty()

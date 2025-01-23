@@ -1,4 +1,6 @@
-﻿using Courses.Business.Contract.Module;
+﻿using Courses.Business.Contract.Lesson;
+using Courses.Business.Contract.Module;
+using FFmpeg.AutoGen;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +30,16 @@ public class ModulesController(IModuleService moduleService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
-    [HttpPut("toggle-status/{id:guid}")]
+    [HttpPut("{id:guid}/update-order")]
+    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromBody] UpdateOrderRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _moduleService.UpdateOrderAsync(id, userId, request, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPut("{id:guid}/toggle-stutes")]
     public async Task<IActionResult> ToggleStatus([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;

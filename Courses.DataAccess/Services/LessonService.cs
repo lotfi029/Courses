@@ -1,4 +1,5 @@
-﻿using Courses.Business.Contract.Lesson;
+﻿using Courses.Business.Contract.Course;
+using Courses.Business.Contract.Lesson;
 
 namespace Courses.DataAccess.Services;
 public class LessonService(
@@ -65,17 +66,21 @@ public class LessonService(
             return LessonErrors.NotFound;
 
         int lessonCnt = lessons.Count;
-        
-        if (newOrder < 1 || newOrder > lessonCnt)
-            return LessonErrors.InvalidLessonOrder;
 
         var updatedLesson = lessons.SingleOrDefault(e => e.Id == id && e.CreatedById == userId);
-        
+
         if (updatedLesson == null)
             return LessonErrors.NotFound;
 
+        if (newOrder == updatedLesson.Order)
+            return Result.Success();
+
         var oldOrder = updatedLesson.Order;
 
+        if (newOrder > lessonCnt)
+            newOrder = lessonCnt;
+        else if (newOrder < 1)
+            newOrder = 1;
 
         if (newOrder < oldOrder)
             foreach(var l in lessons)

@@ -3,11 +3,6 @@ using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.User;
-using Serilog;
-using System.Diagnostics.Eventing.Reader;
-using System.Reflection.Metadata;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Courses.DataAccess.Services;
 public class EnrollmentService(
@@ -218,6 +213,7 @@ public class EnrollmentService(
             select new
             {
                 l.ModuleId,
+                l.Order,
                 LessonResponse = new UserLessonResponse(
                         l.Id,
                         l.Title,
@@ -232,6 +228,7 @@ public class EnrollmentService(
                     )
             })
             .AsNoTracking()
+            .OrderBy(e => e.Order)
             .ToListAsync(cancellationToken);
 
         
@@ -241,14 +238,19 @@ public class EnrollmentService(
 
         var modules = await _context.Modules
             .Where(m => m.CourseId == courseId)
-            .Select(m => new UserModuleResponse(
+            .Select(m => new
+            {
+                m.Order,
+                userModuleResponse = new UserModuleResponse(
                 m.Id,
                 m.Title,
                 m.Description,
                 m.Duration,
                 lessonsByModule.ContainsKey(m.Id) ? lessonsByModule[m.Id] : new List<UserLessonResponse>()
-            ))
+                )
+            })
             .AsNoTracking()
+            .OrderBy(e => e.Order)
             .ToListAsync(cancellationToken);
 
 
@@ -265,7 +267,7 @@ public class EnrollmentService(
             course.IsCompleted,
             course.LastInteractDate,
             course.FinshedDate,
-            modules,
+            modules.Select(e => e.userModuleResponse).ToList(),
             course.Tags,
             course.Categories
             );
@@ -278,10 +280,13 @@ public class EnrollmentService(
         if (await _context.UserCourses.SingleOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId, cancellationToken) is not { } userCourse)
             return EnrollmentErrors.NotFoundEnrollment;
 
+        if (userCourse.IsCompleted)
+            return Result.Success();
+
         if (await _context.UserLessons.SingleOrDefaultAsync(e => e.LessonId == id && e.UserId == userId, cancellationToken) is not { } userLesson)
             return EnrollmentErrors.NotFoundEnrollment;
 
-        if (userCourse.IsCompleted || userLesson.IsComplete)
+        if (userLesson.IsComplete)
             return Result.Success();
 
         var lessonCnt = await _context.Modules
@@ -291,7 +296,7 @@ public class EnrollmentService(
 
         var completeLesson = await _context.UserLessons
             .CountAsync(e => e.UserCourseId == userCourse.Id && e.UserId == userId, cancellationToken);
-        var p = (float)(completeLesson + 1) / (float)lessonCnt;
+        var p = (float)(completeLesson) / (float)lessonCnt;
         userCourse.Progress = p;
 
         userLesson.IsComplete = true;
@@ -307,9 +312,14 @@ public class EnrollmentService(
         if (await _context.UserCourses.Include(e => e.UserLessons).SingleOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId, cancellationToken) is not { } userCourse)
             return EnrollmentErrors.NotFoundEnrollment;
 
-        var userLessons = userCourse.UserLessons.ToList();
+        var userLessons = userCourse.UserLessons.Where(e => e.IsComplete).ToList();
 
-        return Result.Success();
+        var lessonCnt = await _context.Modules
+            .Where(e => e.CourseId == courseId)
+            .Join(_context.Lessons, m => m.Id, l => l.ModuleId, (m, l) => l.Id)
+            .CountAsync(cancellationToken);
+
+        return userLessons.Count == lessonCnt ? Result.Success() : EnrollmentErrors.InvalidCompleteCourse;
     } 
     public async Task<IEnumerable<UserCourseResponse>> GetMyCoursesAsync(string userId, CancellationToken cancellationToken = default)
     {
@@ -367,53 +377,7 @@ public class EnrollmentService(
         return courses;
     }
     
-    // unauth + unsub
-    public async Task<IEnumerable<CourseResponse>> GetAllCoursesAsync(CancellationToken cancellationToken = default)
-    {
-        var courses = await (
-            from c in _context.Courses
-            join ccat in _context.CourseCategories
-            on c.Id equals ccat.CourseId into ccats
-            from cc in ccats.DefaultIfEmpty()
-            join cat in _context.Categories
-            on cc.CategoryId equals cat.Id into cat
-            from cats in cat.DefaultIfEmpty()
-            where c.IsPublished
-            select new
-            {
-                c.Id,
-                c.Title,
-                c.Description,
-                c.Level,
-                c.ThumbnailId,
-                c.Duration,
-                c.Rating,
-                c.IsPublished,
-                c.Price,
-                Tags = c.Tags.Select(e => e.Title),
-                Categories = cats.Adapt<CategoryResponse>()
-            })
-            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.ThumbnailId, x.Duration, x.Rating, x.IsPublished, x.Price, })
-            .Select(c => new CourseResponse( 
-                c.Key.Id,
-                c.Key.Title,
-                c.Key.Description,
-                c.Key.Level,
-                c.Key.ThumbnailId,
-                c.Key.Duration,
-                c.Key.Rating,
-                true,
-                c.Key.Price,
-                0,
-                0,
-                c.SelectMany(e => e.Tags),
-                c.Select(e => e.Categories).ToList(),
-                null!))
-            .ToListAsync(cancellationToken);
-
-        
-        return courses;
-    }
+    // another serivce
     public async Task<(int NoCompleted, int NoEnrollment)> GetCourseInfoAsync(Guid courseId, CancellationToken cancellationToken = default)
     {
         var courses = await _context.UserCourses
@@ -456,10 +420,4 @@ public class EnrollmentService(
             ? Result.Failure<UserCourse>(EnrollmentErrors.NotFoundEnrollment)
             : Result.Success(course);
     }
-    // TODO:
-    // How to update lastvideowtched 
-    // how to update resume video
-    // how to record the progress of the view
-    // how to calculate the duration of the video
-
 }

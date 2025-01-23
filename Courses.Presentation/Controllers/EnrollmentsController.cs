@@ -1,16 +1,12 @@
-﻿using Azure.Core;
-using FFmpeg.AutoGen;
-using Microsoft.VisualBasic;
-
-namespace Courses.Presentation.Controllers;
+﻿namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class EnrollmentsController(IEnrollmentService enrollmentService) : ControllerBase
 {
     private readonly IEnrollmentService _enrollmentService = enrollmentService;
 
     [HttpPost("{courseId:guid}")]
-    [Authorize]
     public async Task<IActionResult> Enroll([FromRoute] Guid courseId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -20,7 +16,6 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : Contr
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpGet("{courseId:guid}/lesson/{lessonId:guid}")]
-    [Authorize]
     public async Task<IActionResult> GetLesson([FromRoute] Guid lessonId, [FromRoute] Guid courseId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -30,7 +25,6 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : Contr
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpPut("{courseId:guid}/complete")]
-    [Authorize]
     public async Task<IActionResult> CompleteLesson([FromRoute] Guid courseId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -49,7 +43,6 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : Contr
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpGet("{courseId:guid}")]
-    [Authorize]
     public async Task<IActionResult> Get([FromRoute] Guid courseId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -59,19 +52,11 @@ public class EnrollmentsController(IEnrollmentService enrollmentService) : Contr
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpGet("my-courses")]
-    [Authorize]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
         var result = await _enrollmentService.GetMyCoursesAsync(userId, cancellationToken);
-
-        return Ok(result);
-    }
-    [HttpGet("all-courses")]
-    public async Task<IActionResult> GetAllCourse(CancellationToken cancellationToken)
-    {
-        var result = await _enrollmentService.GetAllCoursesAsync(cancellationToken);
 
         return Ok(result);
     }
