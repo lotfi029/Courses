@@ -95,34 +95,5 @@ The Interactive Learning System is a robust and scalable platform designed to pr
    dotnet run
    ```
 
----
-
-## Contributing
-If you have suggestions or want to contribute:
-1. Fork the repository.
-2. Create a feature branch:
-   ```bash
-   git checkout -b feature-name
-   ```
-3. Commit your changes:
-   ```bash
-   git commit -m "Add feature description"
-   ```
-4. Push to the branch:
-   ```bash
-   git push origin feature-name
-   ```
-5. Submit a pull request.
-
----
-
-## License
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
-
----
-
-## Contact
-For any inquiries or support, feel free to contact me:
-- **Email**: [YourEmail@example.com](mailto:YourEmail@example.com)
 - **Portfolio**: [YourPortfolio.com](https://yourportfolio.com)
 - **LinkedIn**: [Your LinkedIn](https://linkedin.com/in/yourlinkedin)
