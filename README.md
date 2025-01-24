@@ -94,6 +94,4 @@ The Interactive Learning System is a robust and scalable platform designed to pr
    ```bash
    dotnet run
    ```
-
-- **Portfolio**: [YourPortfolio.com](https://yourportfolio.com)
-- **LinkedIn**: [Your LinkedIn](https://linkedin.com/in/yourlinkedin)
+- **LinkedIn**: [Your LinkedIn](https://www.linkedin.com/in/mohamed-lotfy-994176227/)
