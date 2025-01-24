@@ -72,26 +72,4 @@ The Interactive Learning System is a robust and scalable platform designed to pr
 - SQL Server
 - Visual Studio or VS Code
 
-### Steps to Run
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd InteractiveLearningSystem
-   ```
-3. Restore NuGet packages:
-   ```bash
-   dotnet restore
-   ```
-4. Update the database connection string in `appsettings.json`.
-5. Apply migrations:
-   ```bash
-   dotnet ef database update
-   ```
-6. Run the application:
-   ```bash
-   dotnet run
-   ```
-- **LinkedIn**: [Your LinkedIn](https://www.linkedin.com/in/mohamed-lotfy-994176227/)
+- **LinkedIn**: [My LinkedIn](https://www.linkedin.com/in/mohamed-lotfy-994176227/)
