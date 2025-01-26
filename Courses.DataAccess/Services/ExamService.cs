@@ -41,7 +41,6 @@ public class ExamService(
         if (Guid.Empty == courseId)
             return ModuleErrors.NotFound;
 
-
         var existQuestions = await _context.Questions
             .Where(e => e.CourseId == courseId)
             .Select(e => new {e.IsDisable, e.Id})
@@ -111,15 +110,20 @@ public class ExamService(
     }
     public async Task<Result> ToggleAsync(int id, string userId, CancellationToken cancellationToken = default)
     {
-        int rowUpdated = await _context.Exams
-            .Where(e => e.Id == id && e.CreatedById == userId)
-            .ExecuteUpdateAsync(setters =>
-                setters
-                .SetProperty(e => e.IsDisable, e => !e.IsDisable),
-                cancellationToken
-            );
+        if (await _context.Exams.FindAsync([id], cancellationToken) is not { } exam)
+            return ExamErrors.NotFoundExam;
 
-        return rowUpdated == 0 ? ExamErrors.NotFoundExam : Result.Success();
+        if (exam.CreatedById !=  userId)
+            return UserErrors.UnAutherizeAccess;
+
+        if (await _context.ExamQuestion.CountAsync(e => e.ExamId == id, cancellationToken) < 10)
+            return ExamErrors.NotFoundExam;
+
+        exam.IsDisable = !exam.IsDisable;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
     public async Task<Result<ExamResponse>> GetAsync(int id, string userId, CancellationToken cancellationToken = default)
     {

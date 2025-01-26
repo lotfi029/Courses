@@ -2,9 +2,9 @@
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class EnrollmentsController(IEnrollmentService enrollmentService) : ControllerBase
+public class EnrollmentsController(IEnrolmentService enrollmentService) : ControllerBase
 {
-    private readonly IEnrollmentService _enrollmentService = enrollmentService;
+    private readonly IEnrolmentService _enrollmentService = enrollmentService;
 
     [HttpPost("{courseId:guid}")]
     public async Task<IActionResult> Enroll([FromRoute] Guid courseId, CancellationToken cancellationToken)

@@ -12,7 +12,7 @@ public class MappingConfiguration : IRegister
     {
 
         config.NewConfig<AddCourseRequest, Course>()
-            .Ignore(e => e.Tags)
+            //.Ignore(e => e.Tags)
             .Map(
                 dest => dest.CourseCategories,
                 src => src.CategoryIds.Select(e => new CourseCategories { CategoryId = e })
@@ -36,13 +36,13 @@ public class MappingConfiguration : IRegister
             .Map(dest => dest.NoCompleted, src => src.NoCompleted)
             .Map(dest => dest.NoStudent, src => src.NoEnrollment);
 
-        config.NewConfig<(Course course, List<CategoryResponse> categories, List<Tag> tags), RegularUserCourseResponse>()
+        config.NewConfig<(Course course, List<CategoryResponse> categories), RegularUserCourseResponse>()
             .Map(dest => dest.Categories, src => src.categories)
-            .Map(dest => dest.Tags, src => src.tags.Select(e => e.Title))
+            //.Map(dest => dest.Tags, src => src.tags.Select(e => e.Title))
             .Map(dest => dest, src => src.course);
 
 
-        config.NewConfig<IEnumerable<string>, Tag>()
-            .Map(dest => dest.Title, src => src);
+        //config.NewConfig<IEnumerable<string>, Tag>()
+        //    .Map(dest => dest.Title, src => src);
     }
 }

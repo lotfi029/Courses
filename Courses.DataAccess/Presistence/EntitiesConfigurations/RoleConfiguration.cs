@@ -14,10 +14,10 @@ public class RoleConfiguration : IEntityTypeConfiguration<ApplicationRole>
                 ConcurrencyStamp = DefaultRoles.Admin.ConcurrencyStamp
             },
             new ApplicationRole {
-                Id = DefaultRoles.Student.Id,
-                Name = DefaultRoles.Student.Name,
-                NormalizedName = DefaultRoles.Student.Name.ToUpper(),
-                ConcurrencyStamp = DefaultRoles.Student.ConcurrencyStamp
+                Id = DefaultRoles.User.Id,
+                Name = DefaultRoles.User.Name,
+                NormalizedName = DefaultRoles.User.Name.ToUpper(),
+                ConcurrencyStamp = DefaultRoles.User.ConcurrencyStamp
             }
         ]);
     }

@@ -13,4 +13,7 @@ public class ExamErrors
 
     public static readonly Error InvalidEnrollment
         = new(nameof(InvalidEnrollment), "your are the auther of this exam and you can't enroll this exam as student", StatusCodes.Status400BadRequest);
+
+    public static readonly Error InvalidExam
+        = new(nameof(InvalidExam), "to publish this exam must contain at least 10 question", StatusCodes.Status400BadRequest);
 }

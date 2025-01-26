@@ -22,21 +22,6 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CourseTag", b =>
-                {
-                    b.Property<Guid>("CoursesId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TagsId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("CoursesId", "TagsId");
-
-                    b.HasIndex("TagsId");
-
-                    b.ToTable("CourseTag");
-                });
-
             modelBuilder.Entity("Courses.Business.Entities.Answer", b =>
                 {
                     b.Property<int>("Id")
@@ -113,8 +98,8 @@ namespace Courses.DataAccess.Presistence.Migrations
                             ConcurrencyStamp = "019409cd-7700-71c9-add3-699453281dc4",
                             IsDefualt = false,
                             IsDeleted = false,
-                            Name = "Student",
-                            NormalizedName = "STUDENT"
+                            Name = "User",
+                            NormalizedName = "USER"
                         });
                 });
 
@@ -493,9 +478,6 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<Guid>("ModuleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(450)
@@ -519,6 +501,30 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Lessons");
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ItemType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ModuleId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModuleId");
+
+                    b.ToTable("ModuleItems");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Option", b =>
@@ -576,24 +582,6 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.HasIndex("CourseId");
 
                     b.ToTable("Questions");
-                });
-
-            modelBuilder.Entity("Courses.Business.Entities.Tag", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Title")
-                        .IsUnique();
-
-                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UploadedFile", b =>
@@ -821,84 +809,224 @@ namespace Courses.DataAccess.Presistence.Migrations
                         {
                             Id = 6,
                             ClaimType = "permissions",
-                            ClaimValue = "course:update",
+                            ClaimValue = "course:read",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 7,
                             ClaimType = "permissions",
-                            ClaimValue = "course:toggle",
+                            ClaimValue = "course:update",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 8,
                             ClaimType = "permissions",
-                            ClaimValue = "module:add",
+                            ClaimValue = "course:toggle",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 9,
                             ClaimType = "permissions",
-                            ClaimValue = "module:update",
+                            ClaimValue = "course:blockuser",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 10,
                             ClaimType = "permissions",
-                            ClaimValue = "module:toggle",
+                            ClaimValue = "module:add",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 11,
                             ClaimType = "permissions",
-                            ClaimValue = "lesson:add",
+                            ClaimValue = "module:read",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 12,
                             ClaimType = "permissions",
-                            ClaimValue = "lesson:update",
+                            ClaimValue = "module:update",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 13,
                             ClaimType = "permissions",
-                            ClaimValue = "lesson:toggle",
+                            ClaimValue = "module:toggle",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 14,
                             ClaimType = "permissions",
-                            ClaimValue = "enrollment:add",
+                            ClaimValue = "lesson:add",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 15,
                             ClaimType = "permissions",
-                            ClaimValue = "role:add",
+                            ClaimValue = "lesson:read",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 16,
                             ClaimType = "permissions",
-                            ClaimValue = "role:update",
+                            ClaimValue = "lesson:update",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         },
                         new
                         {
                             Id = 17,
                             ClaimType = "permissions",
+                            ClaimValue = "lesson:toggle",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            ClaimType = "permissions",
+                            ClaimValue = "role:add",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            ClaimType = "permissions",
+                            ClaimValue = "role:read",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            ClaimType = "permissions",
+                            ClaimValue = "role:update",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            ClaimType = "permissions",
                             ClaimValue = "role:toggle",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            ClaimType = "permissions",
+                            ClaimValue = "exam:add",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            ClaimType = "permissions",
+                            ClaimValue = "exam:read",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            ClaimType = "permissions",
+                            ClaimValue = "exam:update",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            ClaimType = "permissions",
+                            ClaimValue = "exam:toggle",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            ClaimType = "permissions",
+                            ClaimValue = "question:add",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            ClaimType = "permissions",
+                            ClaimValue = "question:read",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            ClaimType = "permissions",
+                            ClaimValue = "question:update",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            ClaimType = "permissions",
+                            ClaimValue = "question:toggle",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            ClaimType = "permissions",
+                            ClaimValue = "account:update",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            ClaimType = "permissions",
+                            ClaimValue = "account:changePassword",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            ClaimType = "permissions",
+                            ClaimValue = "account:read",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            ClaimType = "permissions",
+                            ClaimValue = "answer:add",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            ClaimType = "permissions",
+                            ClaimValue = "answer:read",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            ClaimType = "permissions",
+                            ClaimValue = "enrolment:add",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 36,
+                            ClaimType = "permissions",
+                            ClaimValue = "enrolment:read",
+                            RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            ClaimType = "permissions",
+                            ClaimValue = "enrolment:update",
                             RoleId = "019409cc-7157-71a4-99d5-e295c82679db"
                         });
                 });
@@ -989,21 +1117,6 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("CourseTag", b =>
-                {
-                    b.HasOne("Courses.Business.Entities.Course", null)
-                        .WithMany()
-                        .HasForeignKey("CoursesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Courses.Business.Entities.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Answer", b =>
@@ -1261,6 +1374,17 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
+            modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
+                {
+                    b.HasOne("Courses.Business.Entities.CourseModule", "Module")
+                        .WithMany("ModuleItems")
+                        .HasForeignKey("ModuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Module");
+                });
+
             modelBuilder.Entity("Courses.Business.Entities.Option", b =>
                 {
                     b.HasOne("Courses.Business.Entities.Question", "Question")
@@ -1336,7 +1460,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .IsRequired();
 
                     b.HasOne("Courses.Business.Entities.UserCourse", "UserCourse")
-                        .WithMany()
+                        .WithMany("UserLessons")
                         .HasForeignKey("UserCourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1431,6 +1555,8 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Navigation("Exams");
 
                     b.Navigation("Lessons");
+
+                    b.Navigation("ModuleItems");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
@@ -1450,6 +1576,11 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Navigation("ExamQuestions");
 
                     b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.UserCourse", b =>
+                {
+                    b.Navigation("UserLessons");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserExam", b =>

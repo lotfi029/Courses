@@ -10,7 +10,7 @@ public class UserCourseService(ApplicationDbContext context) : IUserCourseServic
     {
         var course = await _context.Courses
             .AsNoTracking()
-            .Include(e => e.Tags)
+            //.Include(e => e.Tags)
             .SingleOrDefaultAsync(e => e.Id == id && e.IsPublished, cancellationToken);
 
         if (course is null)
@@ -23,14 +23,14 @@ public class UserCourseService(ApplicationDbContext context) : IUserCourseServic
             .Select(e => new CategoryResponse(e.Category.Id, e.Category.Title, e.Category.Description))
             .ToListAsync(cancellationToken);
 
-        var response = (course, categoryResponse ?? [], course.Tags.ToList()).Adapt<RegularUserCourseResponse>();
+        var response = (course, categoryResponse ?? []).Adapt<RegularUserCourseResponse>();
 
         return Result.Success(response);
     }
     public async Task<IEnumerable<RegularUserCourseResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var courses = await (
-            from c in _context.Courses.Include(e => e.Tags)
+            from c in _context.Courses
             join cCats in _context.CourseCategories
             on c.Id equals cCats.CourseId into cg
             from cCats in cg.DefaultIfEmpty()
@@ -46,7 +46,7 @@ public class UserCourseService(ApplicationDbContext context) : IUserCourseServic
                 c.ThumbnailId,
                 c.Duration,
                 catg,
-                Tag = c.Tags.Select(e => e.Title).ToList()
+                //Tag = c.Tags.Select(e => e.Title).ToList()
             })
             .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.ThumbnailId, x.Duration })
             .Select(e => new RegularUserCourseResponse(
@@ -56,8 +56,9 @@ public class UserCourseService(ApplicationDbContext context) : IUserCourseServic
                 e.Key.Level,
                 e.Key.ThumbnailId,
                 e.Key.Duration,
-                e.Select(e => e.catg).Adapt<List<CategoryResponse>>(),
-                e.SelectMany(e => e.Tag))
+                e.Select(e => e.catg).Adapt<List<CategoryResponse>>()
+                //e.SelectMany(e => e.Tag)
+                )
             )
             .AsNoTracking()
             .ToListAsync(cancellationToken);

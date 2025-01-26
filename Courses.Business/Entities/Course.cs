@@ -12,7 +12,7 @@ public class Course : AuditableEntity
     public bool IsPublished { get; set; }
     public UploadedFile Thumbnail { get; set; } = default!;
     public ICollection<CourseCategories> CourseCategories { get; set; } = [];
-    public ICollection<Tag> Tags { get; set; } = [];
+    //public ICollection<Tag> Tags { get; set; } = [];
     public ICollection<CourseModule> Modules { get; set; } = []; 
     public ICollection<UserCourse> UserCourses { get; set; } = [];
     public ICollection<Exam>? Exams { get; set; } = [];

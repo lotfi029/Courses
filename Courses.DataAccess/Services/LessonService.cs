@@ -1,4 +1,5 @@
-﻿using Courses.Business.Contract.Course;
+﻿using Courses.Business.Abstract.Enums;
+using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 
 namespace Courses.DataAccess.Services;
@@ -11,22 +12,35 @@ public class LessonService(
 
     public async Task<Result<Guid>> AddAsync(Guid moduleId, string userId, LessonRequest request, CancellationToken cancellationToken = default)
     {
-        var lessons = await _context.Lessons.Where(e => e.ModuleId == moduleId && e.CreatedById == userId).ToListAsync(cancellationToken);
-
-        if (lessons is null)
+        if (await _context.Modules.FindAsync([moduleId], cancellationToken) is not { } module)
             return Result.Failure<Guid>(ModuleErrors.NotFound);
 
-        if (await _context.Lessons.AnyAsync(e => e.Title == request.Title && e.ModuleId == moduleId, cancellationToken))
+        if (module.CreatedById != userId)
+            return Result.Failure<Guid>(UserErrors.UnAutherizeAccess);
+
+        if (await _context.Lessons.AnyAsync(e => e.ModuleId == moduleId && request.Title == e.Title, cancellationToken))
             return Result.Failure<Guid>(LessonErrors.DuplicatedTitle);
 
-        var lastLesson = lessons.Max(e => e.Order);
+        var prevOrder = await _context.ModuleItems
+            .Where(e => e.ModuleId == moduleId)
+            .MaxAsync(e => e.Order, cancellationToken);
+
+        var moduleItem = new ModuleItem
+        {
+            ModuleId = moduleId,
+            ItemType = ModuleItemType.Lesson,
+            Order = prevOrder + 1,
+        };
+
+        await _context.ModuleItems.AddAsync(moduleItem, cancellationToken);
+
+        var fileId = await _fileService.UploadAsync(request.Video, cancellationToken);
 
         Lesson lesson = new()
         {
             Title = request.Title,
             ModuleId = moduleId,
-            FileId = await _fileService.UploadAsync(request.Video, cancellationToken),
-            Order = lastLesson + 1
+            FileId = fileId
         };
 
         await _context.Lessons.AddAsync(lesson, cancellationToken);
@@ -37,10 +51,10 @@ public class LessonService(
     public async Task<Result> UpdateTitleAsync(Guid id, Guid moduleId, UpdateLessonTitleRequest request, string userId, CancellationToken cancellationToken = default)
     {
         if (await _context.Lessons.FindAsync([id], cancellationToken) is not { } lesson)
-            return Result.Failure(LessonErrors.NotFound);
+            return LessonErrors.NotFound;
 
         if (lesson.CreatedById != userId)
-            return Result.Failure(UserErrors.UnAutherizeAccess);
+            return UserErrors.UnAutherizeAccess;
 
         if (await _context.Lessons.AnyAsync(e => e.Title == request.Title && e.ModuleId == moduleId && e.Id != id, cancellationToken))
             return LessonErrors.DuplicatedTitle;
@@ -57,55 +71,55 @@ public class LessonService(
     }
     public async Task<Result> UpdateOrderAsync(Guid moduleId ,Guid id, string userId, int newOrder, CancellationToken cancellationToken = default)
     {
-        var lessons = await _context.Lessons
-            .Where(e => e.ModuleId == moduleId)
-            .OrderBy(e => e.Order)
-            .ToListAsync(cancellationToken);
+        //var lessons = await _context.Lessons
+        //    .Where(e => e.ModuleId == moduleId)
+        //    .OrderBy(e => e.Order)
+        //    .ToListAsync(cancellationToken);
         
-        if (lessons is null)
-            return LessonErrors.NotFound;
+        //if (lessons is null)
+        //    return LessonErrors.NotFound;
 
-        int lessonCnt = lessons.Count;
+        //int lessonCnt = lessons.Count;
 
-        var updatedLesson = lessons.SingleOrDefault(e => e.Id == id && e.CreatedById == userId);
+        //var updatedLesson = lessons.SingleOrDefault(e => e.Id == id && e.CreatedById == userId);
 
-        if (updatedLesson == null)
-            return LessonErrors.NotFound;
+        //if (updatedLesson == null)
+        //    return LessonErrors.NotFound;
 
-        if (newOrder == updatedLesson.Order)
-            return Result.Success();
+        //if (newOrder == updatedLesson.Order)
+        //    return Result.Success();
 
-        var oldOrder = updatedLesson.Order;
+        //var oldOrder = updatedLesson.Order;
 
-        if (newOrder > lessonCnt)
-            newOrder = lessonCnt;
-        else if (newOrder < 1)
-            newOrder = 1;
+        //if (newOrder > lessonCnt)
+        //    newOrder = lessonCnt;
+        //else if (newOrder < 1)
+        //    newOrder = 1;
 
-        if (newOrder < oldOrder)
-            foreach(var l in lessons)
-            {
-                if (l.Order <= oldOrder && l.Order >= newOrder)
-                {
-                    if (l.Id == updatedLesson.Id)
-                        l.Order = newOrder;
-                    else 
-                        l.Order++;
-                }
-            }
-        else
-            foreach (var l in lessons)
-            {
-                if (l.Order >= oldOrder && l.Order <= newOrder)
-                {
-                    if (l.Id == updatedLesson.Id)
-                        l.Order = newOrder;
-                    else
-                        l.Order--;
-                }
-            }
+        //if (newOrder < oldOrder)
+        //    foreach(var l in lessons)
+        //    {
+        //        if (l.Order <= oldOrder && l.Order >= newOrder)
+        //        {
+        //            if (l.Id == updatedLesson.Id)
+        //                l.Order = newOrder;
+        //            else 
+        //                l.Order++;
+        //        }
+        //    }
+        //else
+        //    foreach (var l in lessons)
+        //    {
+        //        if (l.Order >= oldOrder && l.Order <= newOrder)
+        //        {
+        //            if (l.Id == updatedLesson.Id)
+        //                l.Order = newOrder;
+        //            else
+        //                l.Order--;
+        //        }
+        //    }
 
-        _context.Lessons.UpdateRange(lessons);
+        //_context.Lessons.UpdateRange(lessons);
         await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

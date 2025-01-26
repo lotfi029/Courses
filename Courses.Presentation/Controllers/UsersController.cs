@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-
-namespace Courses.Presentation.Controllers;
+﻿namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class UsersController(IUserService userService) : ControllerBase

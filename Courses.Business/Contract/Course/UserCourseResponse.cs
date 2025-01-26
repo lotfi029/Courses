@@ -16,6 +16,6 @@ public record UserCourseResponse (
     DateTime LastInteractDate,
     DateTime? FinshedDate,
     IList<UserModuleResponse>? Modules,
-    IList<string>? Tags,
+    //IList<string>? Tags,
     IList<CategoryResponse>? Categories
 );

@@ -16,7 +16,7 @@ public class RoleService(
         if (await _roleManager.RoleExistsAsync(request.Name))
             return Result.Failure<string>(RoleErrors.InvalidName);
 
-        var permissions = Permissions.GetPermissions;
+        var permissions = Permissions.GetAllPermissions;
 
         if (request.Permissions.Except(permissions).Any())
             return Result.Failure<string>(RoleErrors.InvalidPermission);
@@ -56,7 +56,7 @@ public class RoleService(
         if (await _roleManager.Roles.AnyAsync(e => e.Name == request.Name && e.Id != id, cancellationToken))
             return RoleErrors.InvalidName;
 
-        var permissions = Permissions.GetPermissions;
+        var permissions = Permissions.GetAllPermissions;
 
         if (request.Permissions.Except(permissions).Any())
             return RoleErrors.InvalidPermission;

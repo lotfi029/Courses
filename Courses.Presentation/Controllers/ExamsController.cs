@@ -18,7 +18,7 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return result.IsSuccess ? CreatedAtAction(nameof(GetExam), new {moduleId, id = result.Value}, null) : result.ToProblem();
     }
-    [HttpPost("assign-questions/{id:int}")]
+    [HttpPost("{id:int}/assign-questions")]
     public async Task<IActionResult> AssignQuestion([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -27,7 +27,7 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return result.IsSuccess ? Created() : result.ToProblem();
     }
-    [HttpPut("unassigned-questions/{id:int}")]
+    [HttpPut("{id:int}/unassigned-questions")]
     public async Task<IActionResult> UnAssignedQuestion([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -36,7 +36,7 @@ public class ExamsController(IExamService examService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
-    [HttpPut("toggle-status/{id:int}")]
+    [HttpPut("{id:int}/toggle-status")]
     public async Task<IActionResult> ToggleExam([FromRoute] int id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;

@@ -40,7 +40,7 @@ public static class Depndencies
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICourseService, CourseService>();
         services.AddScoped<IUserCourseService, UserCourseService>();
-        services.AddScoped<IEnrollmentService, EnrollmentService>();
+        services.AddScoped<IEnrolmentService, EnrolmentService>();
         services.AddScoped<ILessonService, LessonService>();
         services.AddScoped<IModuleService, ModuleService>();
         services.AddScoped<IFileService, FileSerivce>();
@@ -70,8 +70,8 @@ public static class Depndencies
         services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-     
-        
+
+
         services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 

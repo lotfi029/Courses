@@ -8,9 +8,9 @@ public class RoleClaimConfiguration : IEntityTypeConfiguration<IdentityRoleClaim
     {
         var roleClaim = new List<IdentityRoleClaim<string>>();
 
-        var permissions = Permissions.GetPermissions;
+        var permissions = Permissions.GetAllPermissions;
 
-        for ( var i = 0; i < permissions.Count; i++)
+        for (var i = 0; i < permissions.Count; i++)
         {
             roleClaim.Add(new IdentityRoleClaim<string>
             {

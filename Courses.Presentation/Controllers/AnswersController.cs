@@ -18,7 +18,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
         return result.IsSuccess ?  Ok(result.Value) : result.ToProblem();
     }
 
-    [HttpPost("submit-answer/{examId:int}")]
+    [HttpPost("{examId:int}/submit-answer")]
     public async Task<IActionResult> SubmitAnswer([FromRoute] int examId,[FromBody] AnswerRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -27,7 +27,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
-    [HttpPost("re-enrol/{id:int}")]
+    [HttpPost("{id:int}/re-enrol")]
     public async Task<IActionResult> ReEnrolExam([FromRoute] int id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;

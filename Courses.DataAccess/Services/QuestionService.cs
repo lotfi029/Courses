@@ -1,4 +1,7 @@
 ﻿using Courses.Business.Contract.Question;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.Security.AccessControl;
+using System.Threading;
 
 namespace Courses.DataAccess.Services;
 public class QuestionService(ApplicationDbContext context) : IQuestionService
@@ -7,8 +10,10 @@ public class QuestionService(ApplicationDbContext context) : IQuestionService
 
     public async Task<Result<int>> AddQuestionsAsync(string userId, Guid courseId, QuestionRequest request, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Courses.AnyAsync(e => e.Id == courseId && e.CreatedById == userId, cancellationToken))
-            return Result.Failure<int>(QuestionErrors.NotFoundQuestion); // TODO: the sut errr message
+        var validCourse = await ValidateCourseAsync(courseId, userId, cancellationToken);
+
+        if (validCourse.IsFailure)
+            return Result.Failure<int>(validCourse.Error);
 
         Question question = new()
         {
@@ -23,8 +28,10 @@ public class QuestionService(ApplicationDbContext context) : IQuestionService
     }
     public async Task<Result> UpdateQuestionsAsync(int id, Guid courseId, string userId, QuestionRequest request, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Courses.AnyAsync(e => e.Id == courseId && e.CreatedById == userId, cancellationToken))
-            return CourseErrors.NotFound; // TODO: the sut errr message
+        var validCourse = await ValidateCourseAsync(courseId, userId, cancellationToken);
+
+        if (validCourse.IsFailure)
+            return validCourse.Error;
 
         var rowsUpdated = await _context.Questions
             .Where(e => e.Id == id)
@@ -37,8 +44,10 @@ public class QuestionService(ApplicationDbContext context) : IQuestionService
     }
     public async Task<Result> RemoveQuestionAsync(int id, Guid courseId, string userId, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Courses.AnyAsync(e => e.Id == courseId && e.CreatedById == userId, cancellationToken))
-            return CourseErrors.NotFound; // TODO: the sut errr message
+        var validCourse = await ValidateCourseAsync(courseId, userId, cancellationToken);
+
+        if (validCourse.IsFailure)
+            return validCourse.Error;
 
         var rowsDeleted = await _context.Questions
             .Where(e => e.Id == id)
@@ -59,8 +68,10 @@ public class QuestionService(ApplicationDbContext context) : IQuestionService
     }
     public async Task<Result> AddQuestionOptionsAsync(int questionId, Guid courseId, string userId, OptionRequest request, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Courses.AnyAsync(e => e.Id == courseId && e.CreatedById == userId, cancellationToken))
-            return CourseErrors.NotFound; // TODO: the sut errr message
+        var validCourse = await ValidateCourseAsync(courseId, userId, cancellationToken);
+
+        if (validCourse.IsFailure)
+            return validCourse.Error;
 
         if (await _context.Questions.Include(e => e.Options).SingleOrDefaultAsync(e => e.Id == questionId, cancellationToken) is not { } question)
             return QuestionErrors.NotFoundQuestion;
@@ -92,8 +103,10 @@ public class QuestionService(ApplicationDbContext context) : IQuestionService
     }
     public async Task<Result> UpdateQuestionOptionsAsync(int questionId, Guid courseId, string userId, OptionRequest request, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Courses.AnyAsync(e => e.Id == courseId && e.CreatedById == userId, cancellationToken))
-            return CourseErrors.NotFound; // TODO: the sut errr message
+        var validCourse = await ValidateCourseAsync(courseId, userId, cancellationToken);
+
+        if (validCourse.IsFailure)
+            return validCourse.Error;
 
         bool isValid = IsValidOptions(request);
 
@@ -107,8 +120,10 @@ public class QuestionService(ApplicationDbContext context) : IQuestionService
     }
     public async Task<Result> ToggleIsDisableAsync(int questionId, Guid courseId, string userId, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Courses.AnyAsync(e => e.Id == courseId && e.CreatedById == userId, cancellationToken))
-            return CourseErrors.NotFound; // TODO: the sut errr message
+        var validCourse = await ValidateCourseAsync(courseId, userId, cancellationToken);
+
+        if (validCourse.IsFailure)
+            return validCourse.Error;
 
         var rowsUpdated = await _context.Questions
             .Where(e => e.Id == questionId)
@@ -133,6 +148,15 @@ public class QuestionService(ApplicationDbContext context) : IQuestionService
         var response = question.Adapt<QuestionResponse>();
 
         return Result.Success(response);
+    }
+    private async Task<Result<Course>> ValidateCourseAsync(Guid courseId, string userId, CancellationToken cancellationToken = default)
+    {
+        if (await _context.Courses.FindAsync([courseId], cancellationToken) is not { } course)
+            return Result.Failure<Course>(CourseErrors.NotFound);
+
+        return course.CreatedById != userId 
+            ? Result.Failure<Course>(UserErrors.UnAutherizeAccess) 
+            : Result.Success(course);
     }
     private static bool IsValidOptions(OptionRequest request)
     {

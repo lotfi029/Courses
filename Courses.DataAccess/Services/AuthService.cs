@@ -25,7 +25,6 @@ public class AuthService(
             return Result.Failure(UserErrors.InvalidEmail);
 
         var user = request.Adapt<ApplicationUser>();
-        user.UserName = request.UserName;
 
         var result = await _userManager.CreateAsync(user, request.Password);
 
@@ -65,7 +64,7 @@ public class AuthService(
             return new Error(error.Code, error.Description, StatusCodes.Status400BadRequest);
         }
 
-        await _userManager.AddToRoleAsync(user, DefaultRoles.Student.Name);
+        await _userManager.AddToRoleAsync(user, DefaultRoles.User.Name);
 
         return Result.Success();
     }
@@ -93,6 +92,7 @@ public class AuthService(
         var user = new EmailAddressAttribute().IsValid(request.Email) 
             ? await _userManager.FindByEmailAsync(request.Email)
             : await _userManager.FindByNameAsync(request.Email);
+
         if (user is null)
             return Result.Failure<AuthResponse>(UserErrors.InvalidCredinitails);
 
@@ -248,7 +248,7 @@ public class AuthService(
 
         return Result.Success();
     }
-    public async Task<AccessTokenResponse> GetTokenAsync(ApplicationUser user)
+    private async Task<AccessTokenResponse> GetTokenAsync(ApplicationUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);
         var permission = await _context.Roles

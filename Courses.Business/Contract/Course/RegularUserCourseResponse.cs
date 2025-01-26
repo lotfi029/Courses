@@ -9,6 +9,6 @@ public record RegularUserCourseResponse(
     string Level,
     Guid ThumbnailId,
     TimeSpan? Duration,
-    IEnumerable<CategoryResponse> Categories,
-    IEnumerable<string> Tags
+    IEnumerable<CategoryResponse> Categories
+    //IEnumerable<string> Tags
     );

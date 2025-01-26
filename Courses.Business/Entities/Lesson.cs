@@ -5,7 +5,7 @@ public class Lesson : AuditableEntity
     public string Title { get; set; } = string.Empty;
     public Guid ModuleId { get; set; }
     public Guid FileId { get; set; }
-    public int Order { get; set; }
+    //public int Order { get; set; }
     public TimeSpan Duration { get; set; }
     public bool IsPreview { get; set; }
     public CourseModule Module { get; set; } = default!;
