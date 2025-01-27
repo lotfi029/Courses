@@ -6,9 +6,12 @@ namespace Courses.Presentation.Controllers;
 [Route("api/{courseId:guid}/modules/{moduleId:guid}/[controller]")]
 [ApiController]
 [Authorize]
-public class LessonsController(ILessonService lessonService) : ControllerBase
+public class LessonsController(
+    ILessonService lessonService,
+    IModuleItemService moduleItemService) : ControllerBase
 {
     private readonly ILessonService _lessonService = lessonService;
+    private readonly IModuleItemService _moduleItemService = moduleItemService;
 
     [HttpPost("")]
     public async Task<IActionResult> Add([FromRoute] Guid courseId, [FromRoute] Guid moduleId, [FromForm] LessonRequest request, CancellationToken cancellationToken)
@@ -28,12 +31,12 @@ public class LessonsController(ILessonService lessonService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
-    [HttpPut("{id:guid}/update-order")]
-    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateOrderRequest request, CancellationToken cancellationToken)
+    [HttpPut("{id:guid}/update-index")]
+    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateIndexRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
-        var result = await _lessonService.UpdateOrderAsync(moduleId, id, userId, request.Order, cancellationToken);
+        var result = await _moduleItemService.UpdateIndexLessonAsync(moduleId, id, userId, request.Index, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }

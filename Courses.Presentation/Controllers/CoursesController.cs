@@ -53,23 +53,6 @@ public class CoursesController(ICourseService courseService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
-    [HttpPut("{id:guid}/assign-tags")]
-    public async Task<IActionResult> AssingTagsToCourse([FromRoute] Guid id, [FromBody] TagsRequest tags, CancellationToken cancellationToken)
-    {
-        var userId = User.GetUserId()!;
-        
-        var result = await _courseService.AssignCourseToTagsAsync(id, userId, tags, cancellationToken);
-
-        return result.IsSuccess ? Ok() : result.ToProblem();
-    }
-    [HttpPut("{id:guid}/unassign-tags")]
-    public async Task<IActionResult> UnAssingTagsToCourse([FromRoute] Guid id, [FromBody] TagsRequest tags, CancellationToken cancellationToken)
-    {
-        var userId = User.GetUserId()!;
-        var result = await _courseService.UnAssignCourseToTagsAsync(id, userId, tags, cancellationToken);
-
-        return result.IsSuccess ? Ok() : result.ToProblem();
-    }
     [HttpPut("{id:guid}/toggle-status")]
     public async Task<IActionResult> ToggleIsPublish([FromRoute] Guid id, CancellationToken cancellationToken)
     {

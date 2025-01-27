@@ -7,8 +7,7 @@ public record RegularUserCourseResponse(
     string Title,
     string Description,
     string Level,
-    Guid ThumbnailId,
+    string ThumbnailId,
     TimeSpan? Duration,
     IEnumerable<CategoryResponse> Categories
-    //IEnumerable<string> Tags
     );

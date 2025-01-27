@@ -6,6 +6,5 @@ public record AddCourseRequest (
     string Level,
     double Price,
     IFormFile Thumbnail,
-    IList<string> Tags,
     IList<Guid> CategoryIds
 );

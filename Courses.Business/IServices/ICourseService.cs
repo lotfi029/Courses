@@ -12,8 +12,6 @@ public interface ICourseService
     Task<Result> ToggleIsPublishAsync(Guid id, string userId, CancellationToken cancellationToken = default);
     Task<Result> AssignCourseToCategoryAsync(Guid id, string userId, Guid categories, CancellationToken cancellationToken = default);
     Task<Result> UnAssignCourseToCategoriesAsync(Guid id, string userId, Guid categoryId, CancellationToken cancellationToken = default);
-    Task<Result> AssignCourseToTagsAsync(Guid id, string userId, TagsRequest tags, CancellationToken cancellationToken = default);
-    Task<Result> UnAssignCourseToTagsAsync(Guid id, string userId, TagsRequest tags, CancellationToken cancellationToken = default);
     Task<Result> BlockedUserAsync(Guid id, string userId, UserIdentifierRequest request, CancellationToken cancellationToken = default);
     Task<Result> UnBlockedUserAsync(Guid id, string userId, UserIdentifierRequest request, CancellationToken cancellationToken = default);
     Task<Result<CourseResponse>> GetAsync(Guid id, string userId, CancellationToken cancellationToken = default);

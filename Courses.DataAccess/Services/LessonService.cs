@@ -1,6 +1,7 @@
 ﻿using Courses.Business.Abstract.Enums;
 using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
+using System.Diagnostics.Contracts;
 
 namespace Courses.DataAccess.Services;
 public class LessonService(
@@ -23,13 +24,13 @@ public class LessonService(
 
         var prevOrder = await _context.ModuleItems
             .Where(e => e.ModuleId == moduleId)
-            .MaxAsync(e => e.Order, cancellationToken);
+            .MaxAsync(e => e.OrderIndex, cancellationToken);
 
         var moduleItem = new ModuleItem
         {
             ModuleId = moduleId,
             ItemType = ModuleItemType.Lesson,
-            Order = prevOrder + 1,
+            OrderIndex = prevOrder + 1,
         };
 
         await _context.ModuleItems.AddAsync(moduleItem, cancellationToken);
@@ -66,61 +67,6 @@ public class LessonService(
                 .SetProperty(e => e.Title, request.Title),
                 cancellationToken
             );
-
-        return Result.Success();
-    }
-    public async Task<Result> UpdateOrderAsync(Guid moduleId ,Guid id, string userId, int newOrder, CancellationToken cancellationToken = default)
-    {
-        //var lessons = await _context.Lessons
-        //    .Where(e => e.ModuleId == moduleId)
-        //    .OrderBy(e => e.Order)
-        //    .ToListAsync(cancellationToken);
-        
-        //if (lessons is null)
-        //    return LessonErrors.NotFound;
-
-        //int lessonCnt = lessons.Count;
-
-        //var updatedLesson = lessons.SingleOrDefault(e => e.Id == id && e.CreatedById == userId);
-
-        //if (updatedLesson == null)
-        //    return LessonErrors.NotFound;
-
-        //if (newOrder == updatedLesson.Order)
-        //    return Result.Success();
-
-        //var oldOrder = updatedLesson.Order;
-
-        //if (newOrder > lessonCnt)
-        //    newOrder = lessonCnt;
-        //else if (newOrder < 1)
-        //    newOrder = 1;
-
-        //if (newOrder < oldOrder)
-        //    foreach(var l in lessons)
-        //    {
-        //        if (l.Order <= oldOrder && l.Order >= newOrder)
-        //        {
-        //            if (l.Id == updatedLesson.Id)
-        //                l.Order = newOrder;
-        //            else 
-        //                l.Order++;
-        //        }
-        //    }
-        //else
-        //    foreach (var l in lessons)
-        //    {
-        //        if (l.Order >= oldOrder && l.Order <= newOrder)
-        //        {
-        //            if (l.Id == updatedLesson.Id)
-        //                l.Order = newOrder;
-        //            else
-        //                l.Order--;
-        //        }
-        //    }
-
-        //_context.Lessons.UpdateRange(lessons);
-        await _context.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -31,7 +31,7 @@ public class ModulesController(IModuleService moduleService) : ControllerBase
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:guid}/update-order")]
-    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromBody] UpdateOrderRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromBody] UpdateIndexRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 

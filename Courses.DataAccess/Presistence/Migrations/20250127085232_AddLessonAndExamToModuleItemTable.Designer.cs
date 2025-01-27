@@ -4,6 +4,7 @@ using Courses.DataAccess.Presistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Courses.DataAccess.Presistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250127085232_AddLessonAndExamToModuleItemTable")]
+    partial class AddLessonAndExamToModuleItemTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,7 +50,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("UserExamId");
 
-                    b.ToTable("Answers", (string)null);
+                    b.ToTable("Answers");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.ApplicationRole", b =>
@@ -236,7 +239,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Course", b =>
@@ -276,9 +279,8 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<float>("Rating")
                         .HasColumnType("real");
 
-                    b.Property<string>("Thumbnail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("ThumbnailId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -295,9 +297,11 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("ThumbnailId");
+
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.CourseCategories", b =>
@@ -318,7 +322,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("CourseCategories", (string)null);
+                    b.ToTable("CourseCategories");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.CourseModule", b =>
@@ -348,7 +352,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<bool>("IsDisable")
                         .HasColumnType("bit");
 
-                    b.Property<int>("OrderIndex")
+                    b.Property<int>("Order")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -434,7 +438,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Exams", (string)null);
+                    b.ToTable("Exams");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.ExamQuestion", b =>
@@ -449,7 +453,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("ExamQuestion", (string)null);
+                    b.ToTable("ExamQuestion");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
@@ -499,7 +503,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.HasIndex("ModuleId", "Title")
                         .IsUnique();
 
-                    b.ToTable("Lessons", (string)null);
+                    b.ToTable("Lessons");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
@@ -513,6 +517,9 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<Guid?>("GuidItemId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Index")
+                        .HasColumnType("int");
+
                     b.Property<int?>("IntItemId")
                         .HasColumnType("int");
 
@@ -522,15 +529,12 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<Guid>("ModuleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("OrderIndex")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ModuleId", "OrderIndex")
+                    b.HasIndex("ModuleId", "Index")
                         .IsUnique();
 
-                    b.ToTable("ModuleItems", (string)null);
+                    b.ToTable("ModuleItems");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Option", b =>
@@ -559,7 +563,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.HasIndex("Text", "QuestionId")
                         .IsUnique();
 
-                    b.ToTable("Options", (string)null);
+                    b.ToTable("Options");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Question", b =>
@@ -587,7 +591,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UploadedFile", b =>
@@ -618,7 +622,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UploadedFiles", (string)null);
+                    b.ToTable("UploadedFiles");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserCourse", b =>
@@ -668,7 +672,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserCourses", (string)null);
+                    b.ToTable("UserCourses");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserExam", b =>
@@ -706,7 +710,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserExams", (string)null);
+                    b.ToTable("UserExams");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserLesson", b =>
@@ -748,7 +752,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLessons", (string)null);
+                    b.ToTable("UserLessons");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1197,11 +1201,19 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Courses.Business.Entities.UploadedFile", "Thumbnail")
+                        .WithMany()
+                        .HasForeignKey("ThumbnailId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Courses.Business.Entities.ApplicationUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
                     b.Navigation("CreatedBy");
+
+                    b.Navigation("Thumbnail");
 
                     b.Navigation("UpdatedBy");
                 });

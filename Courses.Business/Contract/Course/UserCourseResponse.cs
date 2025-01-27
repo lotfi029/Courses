@@ -7,7 +7,7 @@ public record UserCourseResponse (
     string Title,
     string Description,
     string Level,
-    Guid ThumbnailId,
+    string Thumbnail,
     TimeSpan? Duration,
     float Rating,
     float Progress,
@@ -16,6 +16,5 @@ public record UserCourseResponse (
     DateTime LastInteractDate,
     DateTime? FinshedDate,
     IList<UserModuleResponse>? Modules,
-    //IList<string>? Tags,
     IList<CategoryResponse>? Categories
 );

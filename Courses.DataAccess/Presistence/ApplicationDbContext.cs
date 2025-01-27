@@ -15,7 +15,6 @@ public class ApplicationDbContext(
     public DbSet<CourseModule> Modules { get; set; } = default!;
     public DbSet<ModuleItem> ModuleItems { get; set; }
     public DbSet<Answer> Answers { get; set; }
-    //public DbSet<Tag> Tags { get; set; } = default!;
     public DbSet<UserCourse> UserCourses { get; set; }
     public DbSet<UserLesson> UserLessons { get; set; }
     public DbSet<UserExam> UserExams { get; set; }

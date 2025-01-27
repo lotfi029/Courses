@@ -43,21 +43,19 @@ public class UserCourseService(ApplicationDbContext context) : IUserCourseServic
                 c.Title,
                 c.Description,
                 c.Level,
-                c.ThumbnailId,
+                c.Thumbnail,
                 c.Duration,
-                catg,
-                //Tag = c.Tags.Select(e => e.Title).ToList()
+                catg               
             })
-            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.ThumbnailId, x.Duration })
+            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.Thumbnail, x.Duration })
             .Select(e => new RegularUserCourseResponse(
                 e.Key.Id,
                 e.Key.Title,
                 e.Key.Description,
                 e.Key.Level,
-                e.Key.ThumbnailId,
+                e.Key.Thumbnail,
                 e.Key.Duration,
                 e.Select(e => e.catg).Adapt<List<CategoryResponse>>()
-                //e.SelectMany(e => e.Tag)
                 )
             )
             .AsNoTracking()

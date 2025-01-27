@@ -19,21 +19,10 @@ public partial class CourseService(
     {
         var course = request.Adapt<Course>();
 
-        course.ThumbnailId = await _fileService.UploadAsync(request.Thumbnail, cancellationToken);
-        
-        //var tags = await _context.Tags
-        //    .Where(t => request.Tags.Contains(t.Title))
-        //    .ToListAsync(cancellationToken);
-
-        //if (tags.Count != request.Tags.Count)
-        //{
-        //    var newTags = request.Tags.Except(tags.Select(e => e.Title), StringComparer.OrdinalIgnoreCase);
-        //    foreach (var newTag in newTags)
-        //        tags.Add(new Tag { Title = newTag });
-        //}
-
         foreach (var id in course.CourseCategories)
             id.CourseId = course.Id;
+
+        course.Thumbnail = request.Thumbnail.FileName;
 
         //course.Tags = tags;
 
@@ -67,7 +56,7 @@ public partial class CourseService(
 
         var imageId = await _fileService.UploadAsync(request.Image, cancellationToken);
 
-        course.ThumbnailId = imageId;
+        //course.ThumbnailId = imageId;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -149,55 +138,7 @@ public partial class CourseService(
 
         return Result.Success();
     }
-    public async Task<Result> AssignCourseToTagsAsync(Guid id, string userId, TagsRequest tags, CancellationToken cancellationToken = default)
-    {
-        //if (await _context.Courses.Include(e => e.Tags).SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } course)
-            //return CourseErrors.NotFound;
-
-        //if (course.CreatedById != userId)
-        //    return UserErrors.UnAutherizeAccess;
-
-        ////var tagsDb = _context.Tags/
-        //    //.Where(e => tags.Tags.Contains(e.Title));
-
-        //var addedTags = tags.Tags
-        //    .Except(tagsDb.Select(e => e.Title), StringComparer.OrdinalIgnoreCase)
-        //    .Select(e => new Tag { Title = e })
-        //    .ToList();
-
-        //await _context.AddRangeAsync(addedTags, cancellationToken);
-
-        //addedTags.AddRange(tagsDb);
-        //foreach (var tag in addedTags)
-        //    if (!course.Tags.Contains(tag))
-        //        course.Tags.Add(tag);
-
-        await _context.SaveChangesAsync(cancellationToken);
-        return Result.Success();
-    }
-
-    public async Task<Result> UnAssignCourseToTagsAsync(Guid id, string userId, TagsRequest tags, CancellationToken cancellationToken = default)
-    {
-        if (await _context.Courses.SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } course)
-            return Result.Failure(CourseErrors.NotFound);
-
-        if (course.CreatedById != userId)
-            return UserErrors.UnAutherizeAccess;
-
-        //var tagsExists = !tags.Tags.Except(course.Tags.Select(e => e.Title), StringComparer.OrdinalIgnoreCase).Any();
-
-        //if (!tagsExists)
-            //return Result.Failure(TagsError.NotFound);
-
-        //var remvedTags = await _context.Tags.Where(e => tags.Tags.Contains(e.Title)).ToListAsync(cancellationToken);
-
-        //foreach (var tag in remvedTags)
-            //course.Tags.Remove(tag);
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
-    }
+    
     public async Task<Result> BlockedUserAsync(Guid id, string userId, UserIdentifierRequest request, CancellationToken cancellationToken = default)
     {
         if (await _context.Courses.FindAsync([id], cancellationToken) is not { } course)

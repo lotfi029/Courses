@@ -26,16 +26,5 @@ public sealed class AddCourseRequestValidator : AbstractValidator<AddCourseReque
             .SetValidator(new SignatureValidator())
             .SetValidator(new ImageExtensionValidator());
 
-        RuleFor(e => e.Tags)
-            .NotEmpty()
-            .Must(tags => tags.Count == tags.Distinct().Count())
-            .When(e => e.Tags is not null)
-            .WithMessage("{PropertyName} must contain distinct values.");
-
-        RuleFor(e => e.CategoryIds)
-            .NotEmpty()
-            .Must(categories => categories.Count == categories.Distinct().Count())
-            .When(e => e.Tags is not null)
-            .WithMessage("{PropertyName} must contain distinct values.");
     }
 }

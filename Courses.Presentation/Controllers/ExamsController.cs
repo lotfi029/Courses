@@ -1,13 +1,17 @@
 ﻿using Courses.Business.Contract.Exam;
+using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Question;
 
 namespace Courses.Presentation.Controllers;
 [Route("api/{moduleId:guid}/[controller]")]
 [ApiController]
 [Authorize]
-public class ExamsController(IExamService examService) : ControllerBase
+public class ExamsController(
+    IExamService examService,
+    IModuleItemService moduleItemService) : ControllerBase
 {
     private readonly IExamService _examService = examService;
+    private readonly IModuleItemService _moduleItemService = moduleItemService;
 
     [HttpPost("")]
     public async Task<IActionResult> AddExam([FromRoute] Guid moduleId, [FromBody] ExamRequest request, CancellationToken cancellationToken)
@@ -33,6 +37,15 @@ public class ExamsController(IExamService examService) : ControllerBase
         var userId = User.GetUserId()!;
 
         var result = await _examService.RemoveExamQuestionsAsync(id, moduleId, userId, request.QuestionIds, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
+    [HttpPut("{id:int}/update-index")] 
+    public async Task<IActionResult> UpdateOrder([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] UpdateIndexRequest request, CancellationToken cancellationToken)
+    {
+        var userId = User.GetUserId()!;
+
+        var result = await _moduleItemService.UpdateIndexExamAsync(moduleId, id, userId, request.Index, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }

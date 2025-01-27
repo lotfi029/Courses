@@ -74,11 +74,11 @@ public class EnrolmentService(
             select new
             {
                 m.Id,
-                m.Order,
+                m.OrderIndex,
                 lessons = ls.ToList()
             })
             .AsNoTracking()
-            .OrderBy(e => e.Order)
+            .OrderBy(e => e.OrderIndex)
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
 
@@ -160,7 +160,7 @@ public class EnrolmentService(
                 c.Level,
                 c.Rating,
                 c.Duration,
-                c.ThumbnailId,
+                c.Thumbnail,
                 userCourse.Progress,
                 userCourseId = userCourse.Id,
                 userCourse.IsCompleted,
@@ -180,7 +180,7 @@ public class EnrolmentService(
                 c.Level,
                 c.Rating,
                 c.Duration,
-                c.ThumbnailId,
+                c.Thumbnail,
                 c.userCourseId,
                 c.IsCompleted,
                 c.LastInteractDate,
@@ -192,7 +192,7 @@ public class EnrolmentService(
                 c.Key.Title,
                 c.Key.Description,
                 c.Key.Level,
-                c.Key.ThumbnailId,
+                c.Key.Thumbnail,
                 c.Key.Duration,
                 c.Key.Rating,
                 c.Key.userCourseId,
@@ -205,61 +205,57 @@ public class EnrolmentService(
 
             }).Single();
 
-        var userLessons = await (
-            from l in _context.Lessons
-            join ul in _context.UserLessons
-            on l.Id equals ul.LessonId into uls
-            from ul in uls.DefaultIfEmpty()
-            select new
-            {
-                l.ModuleId,
-                //l.Order,
-                LessonResponse = new UserLessonResponse(
-                        l.Id,
-                        l.Title,
-                        l.FileId,
-                        l.Duration,
-                        ul == null ? null : ul.IsComplete,
-                        ul.LastWatchedTimestamp ?? null,
-                        ul == null ? null : ul.StartDate,
-                        ul == null ? null : ul.LastInteractDate,
-                        ul.FinshedDate ?? null,
-                        l.Resources.Adapt<List<RecourseResponse>>()
-                    )
-            })
-            .AsNoTracking()
-            //.OrderBy(e => e.Order)
-            .ToListAsync(cancellationToken);
+      
 
         
-        var lessonsByModule = userLessons
-            .GroupBy(ul => ul.ModuleId)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.LessonResponse).ToList());
+ 
 
         var modules = await _context.Modules
             .Where(m => m.CourseId == courseId)
-            .Select(m => new
-            {
-                m.Order,
-                userModuleResponse = new UserModuleResponse(
-                m.Id,
-                m.Title,
-                m.Description,
-                m.Duration,
-                lessonsByModule.ContainsKey(m.Id) ? lessonsByModule[m.Id] : new List<UserLessonResponse>()
-                )
-            })
+            .Include(i => i.ModuleItems)
             .AsNoTracking()
-            .OrderBy(e => e.Order)
+            .OrderBy(e => e.OrderIndex)
             .ToListAsync(cancellationToken);
 
 
+        var moduleItem = modules.SelectMany(e => e.ModuleItems);
+
+        
+
+            var userLessons = await (
+                from l in _context.Lessons
+                join ul in _context.UserLessons
+                on l.Id equals ul.LessonId into uls
+                from ul in uls.DefaultIfEmpty()
+                select new
+                {
+                    l.ModuleId,
+                    LessonResponse = new UserLessonResponse(
+                            l.Id,
+                            l.Title,
+                            l.FileId,
+                            l.Duration,
+                            ul == null ? null : ul.IsComplete,
+                            ul.LastWatchedTimestamp ?? null,
+                            ul == null ? null : ul.StartDate,
+                            ul == null ? null : ul.LastInteractDate,
+                            ul.FinshedDate ?? null,
+                            l.Resources.Adapt<List<RecourseResponse>>()
+                        )
+                }
+            )
+            .AsNoTracking()
+            
+            .ToListAsync(cancellationToken);
+        var lessonsByModule = userLessons
+            .GroupBy(ul => ul.ModuleId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.LessonResponse).ToList());
         var respons = new UserCourseResponse(
             course.Id,
             course.Title,
             course.Description,
             course.Level,
-            course.ThumbnailId,
+            course.Thumbnail,
             course.Duration,
             course.Rating,
             course.Progress,
@@ -267,7 +263,7 @@ public class EnrolmentService(
             course.IsCompleted,
             course.LastInteractDate,
             course.FinshedDate,
-            modules.Select(e => e.userModuleResponse).ToList(),
+            [],
             //course.Tags,
             course.Categories
             );
@@ -340,7 +336,7 @@ public class EnrolmentService(
                 c.Title,
                 c.Description,
                 c.Level,
-                c.ThumbnailId,
+                c.Thumbnail,
                 c.Duration,
                 c.Rating,
                 uc.Progress,
@@ -351,13 +347,13 @@ public class EnrolmentService(
                 category = category.Adapt<CategoryResponse>()
                 //tags = c.Tags.Select(e => e.Title)
             })
-            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.ThumbnailId, x.Duration, x.Rating, x.Progress, x.userCourseId, x.IsCompleted, x.LastInteractDate, x.FinshedDate })
+            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.Thumbnail, x.Duration, x.Rating, x.Progress, x.userCourseId, x.IsCompleted, x.LastInteractDate, x.FinshedDate })
             .Select(c => new UserCourseResponse(
                 c.Key.Id,
                 c.Key.Title,
                 c.Key.Description,
                 c.Key.Level,
-                c.Key.ThumbnailId,
+                c.Key.Thumbnail,
                 c.Key.Duration,
                 c.Key.Rating,
                 c.Key.Progress,

@@ -1,4 +1,6 @@
-﻿using Courses.Business.Contract.Lesson;
+﻿using Courses.Business.Abstract.Enums;
+using Courses.Business.Contract.Exam;
+using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.DataAccess.Presistence;
 
@@ -26,13 +28,13 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
             if (modules.Any(e => e.CourseId == courseId && e.Title == request.Title))
                 return Result.Failure<Guid>(ModuleErrors.DuplicatedTitle);
 
-            maxOrder = modules.Max(e => e.Order);
+            maxOrder = modules.Max(e => e.OrderIndex);
         }
 
         var module = request.Adapt<CourseModule>();
 
         module.CourseId = courseId;
-        module.Order = maxOrder + 1;
+        module.OrderIndex = maxOrder + 1;
 
         await _context.Modules.AddAsync(module, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
@@ -56,9 +58,9 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
 
         return Result.Success();
     }
-    public async Task<Result> UpdateOrderAsync(Guid id, string userId, UpdateOrderRequest request ,CancellationToken cancellationToken = default)
+    public async Task<Result> UpdateOrderAsync(Guid id, string userId, UpdateIndexRequest request ,CancellationToken cancellationToken = default)
     {
-        if (await _context.Modules.OrderBy(e => e.Order).ToListAsync(cancellationToken) is not { } modules)
+        if (await _context.Modules.OrderBy(e => e.OrderIndex).ToListAsync(cancellationToken) is not { } modules)
             return Result.Failure(ModuleErrors.NotFound);
 
         if (modules.Find(e => e.Id == id) is not { } module)
@@ -67,12 +69,12 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
         if (module.CreatedById != userId)
             return Result.Failure(UserErrors.UnAutherizeAccess);
 
-        if (request.Order == module.Order)
+        if (request.Index == module.OrderIndex)
             return Result.Success();
 
         var lessonCnt = modules.Count;
-        var oldOrder = module.Order;
-        var newOrder = request.Order;
+        var oldOrder = module.OrderIndex;
+        var newOrder = request.Index;
 
         if (newOrder > lessonCnt)
             newOrder = lessonCnt;
@@ -83,18 +85,18 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
             foreach(var mdl in modules)
             {
                 if (mdl.Id == module.Id)
-                    mdl.Order = newOrder;
-                else if (mdl.Order <= newOrder && mdl.Order >= oldOrder)
-                    mdl.Order -= 1;
+                    mdl.OrderIndex = newOrder;
+                else if (mdl.OrderIndex <= newOrder && mdl.OrderIndex >= oldOrder)
+                    mdl.OrderIndex -= 1;
             }
         }
         else {
             foreach (var mdl in modules)
             {
                 if (mdl.Id == module.Id)
-                    mdl.Order = newOrder;
-                else if (mdl.Order >= newOrder && mdl.Order <= oldOrder)
-                    mdl.Order += 1;
+                    mdl.OrderIndex = newOrder;
+                else if (mdl.OrderIndex >= newOrder && mdl.OrderIndex <= oldOrder)
+                    mdl.OrderIndex += 1;
             }
         }
 
@@ -130,14 +132,56 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
     public async Task<IEnumerable<ModuleResponse>> GetAllAsync(Guid courseId, string? userId = null, CancellationToken cancellationToken = default)
     {
         var modules = await _context.Modules
+            .Include(e => e.ModuleItems)
             .Where(e => e.CourseId == courseId)
-            .OrderBy(e => e.Order)
+            .OrderBy(e => e.OrderIndex)
             .AsNoTracking()
-            .ProjectToType<ModuleResponse>()
             .ToListAsync(cancellationToken);
 
 
-        return modules;
+        var lessonItems = modules.Select(e => e.ModuleItems);
+        var examItems = modules.Select(e => e.ModuleItems);
+
+        return [];
     }
+    //public async Task<TestModuleResponse?> GetCourseModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
+    //{
+    //    var module = await _context.CourseModules
+    //        .Include(cm => cm.ModuleItems)
+    //        .Where(cm => cm.Id == moduleId)
+    //        .Select(cm => new TestModuleResponse
+    //        (
+    //            cm.Id,
+    //            cm.Title,
+    //            cm.Description,
+    //            cm.Duration,
+    //            cm.ModuleItems
+    //                .Where(mi => mi.ItemType == ModuleItemType.Lesson && mi.GuidItemId.HasValue)
+    //                .OrderBy(mi => mi.OrderIndex)
+    //                .Select(mi => new LessonResponse
+    //                (
+    //                    mi.GuidItemId!.Value, // GuidItemId links to Lesson
+    //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.Title,
+    //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.Duration,
+    //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.IsPreview
+    //                ))
+    //                .ToList(),
+    //            cm.ModuleItems
+    //                .Where(mi => mi.ItemType == ModuleItemType.Exam && mi.IntItemId.HasValue)
+    //                .OrderBy(mi => mi.OrderIndex)
+    //                .Select(mi => new ExamResponse
+    //                {
+    //                    ExamId = mi.IntItemId!.Value, // IntItemId links to Exam
+    //                    Title = cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.Title,
+    //                    Duration = cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.Duration,
+    //                    NoQuestion = cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.NoQuestion
+    //                })
+    //                .ToList()
+    //        ))
+    //        .AsNoTracking()
+    //        .FirstOrDefaultAsync(cancellationToken);
+
+    //    return module;
+    //}
 
 }
