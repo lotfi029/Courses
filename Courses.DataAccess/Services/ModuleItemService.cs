@@ -8,79 +8,83 @@ public class ModuleItemService(ApplicationDbContext context) : IModuleItemServic
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<Result> UpdateIndexExamAsync(Guid moduleId, int examId, string userId, int newIndex, CancellationToken cancellationToken = default)
+    public  Task<Result> UpdateIndexExamAsync(Guid moduleId, Guid examId, string userId, int newIndex, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Exams.AnyAsync(e => e.Id == examId, cancellationToken))
-            return LessonErrors.NotFound;
+        //if (!await _context.Exams.AnyAsync(e => e.Id == examId, cancellationToken))
+        //    return LessonErrors.NotFound;
 
-        var moduleItems = await _context.ModuleItems
-            .Where(e => e.ModuleId == moduleId)
-            .OrderBy(e => e.OrderIndex)
-            .ToListAsync(cancellationToken);
+        //var moduleItems = await _context.ModuleItems
+        //    .Where(e => e.ModuleId == moduleId)
+        //    .OrderBy(e => e.OrderIndex)
+        //    .ToListAsync(cancellationToken);
 
-        var examItem = moduleItems.SingleOrDefault(e => e.ItemType == ModuleItemType.Exam && e.IntItemId == examId)!;
+        //var examItem = moduleItems.SingleOrDefault(e => e.ItemType == ModuleItemType.Exam && e.IntItemId == examId)!;
 
-        var result = await OrderAsync(moduleItems, examItem, newIndex, cancellationToken);
+        //var result = await OrderAsync(moduleItems, examItem, newIndex, cancellationToken);
 
-        return result;
+        //return result;
+
+        throw new NotImplementedException();
     }
 
     public async Task<Result> UpdateIndexLessonAsync(Guid moduleId, Guid lessonId, string userId, int newIndex, CancellationToken cancellationToken = default)
     {
-        if (!await _context.Lessons.AnyAsync(e => e.Id == lessonId, cancellationToken))
-            return LessonErrors.NotFound;
+        //if (!await _context.Lessons.AnyAsync(e => e.Id == lessonId, cancellationToken))
+        //    return LessonErrors.NotFound;
 
-        var moduleItems = await _context.ModuleItems
-            .Where(e => e.ModuleId == moduleId)
-            .OrderBy(e => e.OrderIndex)
-            .ToListAsync(cancellationToken);
+        //var moduleItems = await _context.ModuleItems
+        //    .Where(e => e.ModuleId == moduleId)
+        //    .OrderBy(e => e.OrderIndex)
+        //    .ToListAsync(cancellationToken);
 
-        var lessonItem = moduleItems.SingleOrDefault(e => e.ItemType == ModuleItemType.Lesson && e.GuidItemId == lessonId)!;
+        //var lessonItem = moduleItems.SingleOrDefault(e => e.ItemType == ModuleItemType.Lesson && e.GuidItemId == lessonId)!;
 
-        var result = await OrderAsync(moduleItems, lessonItem, newIndex, cancellationToken);
+        //var result = await OrderAsync(moduleItems, lessonItem, newIndex, cancellationToken);
 
-        return result;
+        //return result;
+
+        throw new NotImplementedException();
 
     }
-    private async Task<Result> OrderAsync(List<ModuleItem> moduleItems, ModuleItem moduleItem, int newIndex, CancellationToken cancellationToken = default)
-    {
-        var moduleIndex = moduleItem.OrderIndex;
+    //private async Task<Result> OrderAsync(List<ModuleItem> moduleItems, ModuleItem moduleItem, int newIndex, CancellationToken cancellationToken = default)
+    //{
+    //    var moduleIndex = moduleItem.OrderIndex;
 
-        var itemCount = moduleItems.Count;
+    //    var itemCount = moduleItems.Count;
 
-        if (newIndex == moduleIndex)
-            return Result.Success();
+    //    if (newIndex == moduleIndex)
+    //        return Result.Success();
 
-        if (newIndex > itemCount)
-            newIndex = itemCount;
-        else if (newIndex < 1)
-            newIndex = 1;
+    //    if (newIndex > itemCount)
+    //        newIndex = itemCount;
+    //    else if (newIndex < 1)
+    //        newIndex = 1;
 
-        if (newIndex < moduleIndex)
-        {
-            foreach (var item in moduleItems)
-            {
-                if (item.Id == moduleItem.Id)
-                    item.OrderIndex = newIndex;
+    //    if (newIndex < moduleIndex)
+    //    {
+    //        foreach (var item in moduleItems)
+    //        {
+    //            if (item.Id == moduleItem.Id)
+    //                item.OrderIndex = newIndex;
 
-                else if (item.OrderIndex >= newIndex)
-                    item.OrderIndex += 1;
-            }
-        }
-        else
-        {
-            foreach (var item in moduleItems)
-            {
-                if (item.Id == moduleItem.Id)
-                    item.OrderIndex = newIndex;
+    //            else if (item.OrderIndex >= newIndex)
+    //                item.OrderIndex += 1;
+    //        }
+    //    }
+    //    else
+    //    {
+    //        foreach (var item in moduleItems)
+    //        {
+    //            if (item.Id == moduleItem.Id)
+    //                item.OrderIndex = newIndex;
 
-                else if (item.OrderIndex > moduleIndex)
-                    item.OrderIndex -= 1;
-            }
-        }
+    //            else if (item.OrderIndex > moduleIndex)
+    //                item.OrderIndex -= 1;
+    //        }
+    //    }
 
-        await _context.SaveChangesAsync(cancellationToken);
+    //    await _context.SaveChangesAsync(cancellationToken);
 
-        return Result.Success();
-    }
+    //    return Result.Success();
+    //}
 }

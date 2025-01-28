@@ -9,7 +9,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
     private readonly IAnswerService _answerService = answerService;
 
     [HttpPost("{examId:int}")]
-    public async Task<IActionResult> EnrollExamAsync([FromRoute] int examId, CancellationToken cancellationToken)
+    public async Task<IActionResult> EnrollExamAsync([FromRoute]Guid examId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -19,7 +19,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
     }
 
     [HttpPost("{examId:int}/submit-answer")]
-    public async Task<IActionResult> SubmitAnswer([FromRoute] int examId,[FromBody] AnswerRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> SubmitAnswer([FromRoute]Guid examId,[FromBody] AnswerRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -28,20 +28,20 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPost("{id:int}/re-enrol")]
-    public async Task<IActionResult> ReEnrolExam([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> ReEnrolExam([FromRoute] Guid examId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
-        var result = await _answerService.ReEnrolExamAsync(id, userId, cancellationToken);
+        var result = await _answerService.ReEnrolExamAsync(examId, userId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> Get([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Get([FromRoute] Guid examId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
-        var result = await _answerService.GetAsync(id, userId, cancellationToken);
+        var result = await _answerService.GetAsync(examId, userId, cancellationToken);
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }

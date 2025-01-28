@@ -1,7 +1,7 @@
 ﻿namespace Courses.Business.Contract.UserExam;
 
 public record UserExamDetailResponse(
-    int Id,
+    Guid Id,
     string Title,
     string Description,
     TimeSpan Duratin,

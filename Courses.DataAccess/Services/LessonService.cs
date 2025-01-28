@@ -1,7 +1,5 @@
 ﻿using Courses.Business.Abstract.Enums;
-using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
-using System.Diagnostics.Contracts;
 
 namespace Courses.DataAccess.Services;
 public class LessonService(
@@ -22,18 +20,14 @@ public class LessonService(
         if (await _context.Lessons.AnyAsync(e => e.ModuleId == moduleId && request.Title == e.Title, cancellationToken))
             return Result.Failure<Guid>(LessonErrors.DuplicatedTitle);
 
-        var prevOrder = await _context.ModuleItems
-            .Where(e => e.ModuleId == moduleId)
-            .MaxAsync(e => e.OrderIndex, cancellationToken);
+        //var itemOrder = await _context.ModuleItems
+        //    .Where(e => e.ModuleId == moduleId)
+        //    .Select(e => e.OrderIndex)
+        //    .ToListAsync(cancellationToken);
 
-        var moduleItem = new ModuleItem
-        {
-            ModuleId = moduleId,
-            ItemType = ModuleItemType.Lesson,
-            OrderIndex = prevOrder + 1,
-        };
-
-        await _context.ModuleItems.AddAsync(moduleItem, cancellationToken);
+        //int prevOrder = 0;
+        //if (itemOrder.Count > 0) 
+        //    prevOrder = itemOrder.Max();
 
         var fileId = await _fileService.UploadAsync(request.Video, cancellationToken);
 
@@ -44,6 +38,15 @@ public class LessonService(
             FileId = fileId
         };
 
+        //var moduleItem = new ModuleItem
+        //{
+        //    ModuleId = moduleId,
+        //    ItemType = ModuleItemType.Lesson,
+        //    OrderIndex = prevOrder + 1,
+        //    GuidItemId = lesson.Id
+        //};
+
+        //await _context.ModuleItems.AddAsync(moduleItem, cancellationToken);
         await _context.Lessons.AddAsync(lesson, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 

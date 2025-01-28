@@ -12,5 +12,9 @@ public class ExamConfiguration : IEntityTypeConfiguration<Exam>
 
         builder.Property(e => e.IsDisable)
             .HasDefaultValue(true);
+
+        //builder.HasOne(e => e.Module)
+        //    .WithMany(e => e.Exams)
+        //    .HasForeignKey(e => e.ModuleId);
     }
 }

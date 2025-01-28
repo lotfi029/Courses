@@ -132,22 +132,22 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
     public async Task<IEnumerable<ModuleResponse>> GetAllAsync(Guid courseId, string? userId = null, CancellationToken cancellationToken = default)
     {
         var modules = await _context.Modules
-            .Include(e => e.ModuleItems)
+            //.Include(e => e.ModuleItems)
             .Where(e => e.CourseId == courseId)
             .OrderBy(e => e.OrderIndex)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
 
-        var lessonItems = modules.Select(e => e.ModuleItems);
-        var examItems = modules.Select(e => e.ModuleItems);
+        //var lessonItems = modules.Select(e => e.ModuleItems);
+        //var examItems = modules.Select(e => e.ModuleItems);
 
         return [];
     }
     //public async Task<TestModuleResponse?> GetCourseModuleAsync(Guid moduleId, CancellationToken cancellationToken = default)
     //{
-    //    var module = await _context.CourseModules
-    //        .Include(cm => cm.ModuleItems)
+    //    var module = await _context.Modules
+    //        //.Include(cm => cm.ModuleItems)
     //        .Where(cm => cm.Id == moduleId)
     //        .Select(cm => new TestModuleResponse
     //        (
@@ -162,20 +162,23 @@ public class ModuleService(ApplicationDbContext context) : IModuleService
     //                (
     //                    mi.GuidItemId!.Value, // GuidItemId links to Lesson
     //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.Title,
+    //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.FileId,
     //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.Duration,
-    //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.IsPreview
+    //                    cm.Lessons.FirstOrDefault(l => l.Id == mi.GuidItemId!.Value)!.Resources.Adapt<ICollection<RecourseResponse>>()
     //                ))
     //                .ToList(),
     //            cm.ModuleItems
     //                .Where(mi => mi.ItemType == ModuleItemType.Exam && mi.IntItemId.HasValue)
     //                .OrderBy(mi => mi.OrderIndex)
     //                .Select(mi => new ExamResponse
-    //                {
-    //                    ExamId = mi.IntItemId!.Value, // IntItemId links to Exam
-    //                    Title = cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.Title,
-    //                    Duration = cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.Duration,
-    //                    NoQuestion = cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.NoQuestion
-    //                })
+    //                (
+    //                    mi.IntItemId!.Value, // IntItemId links to Exam
+    //                    cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.Title,
+    //                    cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.Description,
+    //                    cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.Duration,
+    //                    cm.Exams!.FirstOrDefault(e => e.Id == mi.IntItemId!.Value)!.IsDisable,
+    //                    null!
+    //                ))
     //                .ToList()
     //        ))
     //        .AsNoTracking()

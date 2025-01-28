@@ -1,7 +1,7 @@
 ﻿namespace Courses.Business.Entities;
 public class ExamQuestion : IEquatable<ExamQuestion>
 {
-    public int ExamId { get; set; }
+    public Guid ExamId { get; set; }
     public int QuestionId { get; set; }
     public Exam Exam { get; set; } = default!;
     public Question Question { get; set; } = default!;

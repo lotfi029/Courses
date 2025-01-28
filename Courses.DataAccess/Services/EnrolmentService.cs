@@ -212,13 +212,13 @@ public class EnrolmentService(
 
         var modules = await _context.Modules
             .Where(m => m.CourseId == courseId)
-            .Include(i => i.ModuleItems)
+            
             .AsNoTracking()
-            .OrderBy(e => e.OrderIndex)
+            
             .ToListAsync(cancellationToken);
 
 
-        var moduleItem = modules.SelectMany(e => e.ModuleItems);
+        //var moduleItem = modules.SelectMany(e => e.ModuleItems);
 
         
 

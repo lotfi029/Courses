@@ -3,7 +3,7 @@
 namespace Courses.Business.Contract.Exam;
 
 public record ExamResponse(
-    int Id,
+    Guid Id,
     string Title,
     string Description,
     TimeSpan Duration,

@@ -43,6 +43,7 @@ public static class Depndencies
         services.AddScoped<IEnrolmentService, EnrolmentService>();
         services.AddScoped<ILessonService, LessonService>();
         services.AddScoped<IModuleService, ModuleService>();
+        services.AddScoped<IModuleItemService, ModuleItemService>();
         services.AddScoped<IFileService, FileSerivce>();
         services.AddScoped<IExamService, ExamService>();
 

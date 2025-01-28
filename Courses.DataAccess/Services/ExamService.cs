@@ -10,13 +10,13 @@ public class ExamService(
     private readonly ApplicationDbContext _context = context;
     private readonly IAnswerService _answerService = answerService;
 
-    public async Task<Result<int>> AddAsync(Guid moduleId, string userId, ExamRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<Guid>> AddAsync(Guid moduleId, string userId, ExamRequest request, CancellationToken cancellationToken = default)
     {
         if (!await _context.Modules.AnyAsync(e => e.Id == moduleId && e.CreatedById == userId, cancellationToken))
-            return Result.Failure<int>(ModuleErrors.NotFound);
+            return Result.Failure<Guid>(ModuleErrors.NotFound);
 
         if (await _context.Exams.AnyAsync(e => e.Title == request.Title && e.ModuleId == moduleId, cancellationToken))
-            return Result.Failure<int>(ExamErrors.DuplicatedTitle);
+            return Result.Failure<Guid>(ExamErrors.DuplicatedTitle);
 
         var exam = request.Adapt<Exam>();
         exam.ModuleId = moduleId;
@@ -27,7 +27,7 @@ public class ExamService(
 
         return Result.Success(exam.Id);
     }
-    public async Task<Result> AddExamQuestionsAsync(int id, Guid moduleId, string userId, IEnumerable<int> questionIds, CancellationToken cancellationToken = default)
+    public async Task<Result> AddExamQuestionsAsync(Guid id, Guid moduleId, string userId, IEnumerable<int> questionIds, CancellationToken cancellationToken = default)
     {
 
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } exam)
@@ -69,7 +69,7 @@ public class ExamService(
         
         return Result.Success();
     }
-    public async Task<Result> RemoveExamQuestionsAsync(int id, Guid moduleId, string userId, IEnumerable<int> questionIds, CancellationToken cancellationToken = default)
+    public async Task<Result> RemoveExamQuestionsAsync(Guid id, Guid moduleId, string userId, IEnumerable<int> questionIds, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } exam)
             return ExamErrors.NotFoundExam;
@@ -94,7 +94,7 @@ public class ExamService(
 
         return Result.Success();
     }
-    public async Task<Result> UpdateAsync(int id, Guid moduleId, string userId, ExamRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result> UpdateAsync(Guid id, Guid moduleId, string userId, ExamRequest request, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.SingleAsync(e => e.Id == id && e.CreatedById == userId, cancellationToken) is not { } exam)
             return ExamErrors.NotFoundExam;
@@ -108,7 +108,7 @@ public class ExamService(
 
         return Result.Success();
     }
-    public async Task<Result> ToggleAsync(int id, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result> ToggleAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.FindAsync([id], cancellationToken) is not { } exam)
             return ExamErrors.NotFoundExam;
@@ -125,7 +125,7 @@ public class ExamService(
 
         return Result.Success();
     }
-    public async Task<Result<ExamResponse>> GetAsync(int id, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ExamResponse>> GetAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
         var exam = await _context.Exams
             .SingleOrDefaultAsync(e => e.Id == id && e.CreatedById == userId, cancellationToken);
@@ -181,7 +181,7 @@ public class ExamService(
 
         return response;
     }
-    public async Task<IEnumerable<UserExamResponse>> GetExamUsersAsync(int examId, string userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<UserExamResponse>> GetExamUsersAsync(Guid examId, string userId, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == examId && e.CreatedById == userId, cancellationToken) is not { } exam)
             return []; // not found || unautherize access

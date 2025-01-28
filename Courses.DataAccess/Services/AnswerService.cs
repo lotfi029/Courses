@@ -10,7 +10,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<Result> AddAnswer(int examId, string userId, IEnumerable<AnswerValues> request, CancellationToken cancellationToken = default)
+    public async Task<Result> AddAnswer(Guid examId, string userId, IEnumerable<AnswerValues> request, CancellationToken cancellationToken = default)
     {
         if (await _context.UserExams.SingleOrDefaultAsync(e => e.UserId == userId && e.ExamId == examId && e.EndDate == null,cancellationToken) is not { } userExam)
             return UserExamErrors.InvalidSubmitExam; // exam not found
@@ -60,7 +60,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         return Result.Success();
     }
-    public async Task<Result<ExamResponse>> EnrollExamAsync(int examId, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ExamResponse>> EnrollExamAsync(Guid examId, string userId, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == examId, cancellationToken) is not { } exam)
             return Result.Failure<ExamResponse>(ExamErrors.NotFoundExam); // see error class TODO:
@@ -87,7 +87,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         return Result.Success(response);
     }
-    public async Task<Result<ExamResponse>> ReEnrolExamAsync(int examId, string userId, CancellationToken cancellationToken = default)
+    public async Task<Result<ExamResponse>> ReEnrolExamAsync(Guid examId, string userId, CancellationToken cancellationToken = default)
     {
         var userExams = await _context.UserExams.Where(e => e.ExamId == examId && e.UserId == userId).ToListAsync(cancellationToken);
         
@@ -113,7 +113,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         return Result.Success(response); 
     }
-    public async Task<Result<UserExamDetailResponse>> GetAsync(int examId, string userId, CancellationToken cancellationToken)
+    public async Task<Result<UserExamDetailResponse>> GetAsync(Guid examId, string userId, CancellationToken cancellationToken)
     {
         var exam = await _context.Exams
             .SingleOrDefaultAsync(e => e.Id == examId, cancellationToken);

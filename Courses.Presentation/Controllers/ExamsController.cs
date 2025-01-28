@@ -23,7 +23,7 @@ public class ExamsController(
         return result.IsSuccess ? CreatedAtAction(nameof(GetExam), new {moduleId, id = result.Value}, null) : result.ToProblem();
     }
     [HttpPost("{id:int}/assign-questions")]
-    public async Task<IActionResult> AssignQuestion([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AssignQuestion([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -32,7 +32,7 @@ public class ExamsController(
         return result.IsSuccess ? Created() : result.ToProblem();
     }
     [HttpPut("{id:int}/unassigned-questions")]
-    public async Task<IActionResult> UnAssignedQuestion([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UnAssignedQuestion([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] QuestionExamRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -41,7 +41,7 @@ public class ExamsController(
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:int}/update-index")] 
-    public async Task<IActionResult> UpdateOrder([FromRoute] int id, [FromRoute] Guid moduleId, [FromBody] UpdateIndexRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateIndexRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -50,7 +50,7 @@ public class ExamsController(
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:int}/toggle-status")]
-    public async Task<IActionResult> ToggleExam([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> ToggleExam([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -59,7 +59,7 @@ public class ExamsController(
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetExam([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExam([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
@@ -77,7 +77,7 @@ public class ExamsController(
         return Ok(result);
     }
     [HttpGet("{id:int}/students")]
-    public async Task<IActionResult> GetExamUsers([FromRoute] int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExamUsers([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 

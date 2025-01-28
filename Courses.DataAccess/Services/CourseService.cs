@@ -67,7 +67,7 @@ public partial class CourseService(
 
         var course = await _context.Courses
             .Include(e => e.Modules)
-            .ThenInclude(e => e.Lessons)
+            //.ThenInclude(e => e.Lessons)
             .SingleOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         if (course is null)
@@ -77,15 +77,15 @@ public partial class CourseService(
             return UserErrors.UnAutherizeAccess;
 
         var modules = await _context.Modules
-            .Include(e => e.Lessons)
+            //.Include(e => e.Lessons)
             .Where(e => e.CourseId == id)
-            .ToDictionaryAsync(e => e, e => e.Lessons, cancellationToken);
+            .ToDictionaryAsync(e => e, e => e, cancellationToken);
         
         int preViewCnt = 0;
         
         foreach(var module in modules)
         {
-            preViewCnt += module.Value.Count(e => e.IsPreview);
+            //preViewCnt += module.Value.Count();
         }
 
         if (preViewCnt < 2)

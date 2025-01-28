@@ -9,7 +9,5 @@ public class CourseModule : AuditableEntity
     public TimeSpan Duration { get; set; }
     public Guid CourseId { get; set; }
     public Course Course { get; set; } = default!;
-    public ICollection<Lesson> Lessons { get; set; } = [];
-    public ICollection<Exam>? Exams { get; set; } = [];
     public ICollection<ModuleItem> ModuleItems { get; set; } = [];
 }
