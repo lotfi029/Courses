@@ -84,7 +84,7 @@ public class EnrolmentService(
 
 
         Lesson nextLesson = null!;
-        if (userLessons.Select(e => e.LessonId).Contains(id))
+        if (userLessons.Select(e => e.ModuleItemId).Contains(id))
             nextLesson = lesson;
         else
         {
@@ -92,7 +92,7 @@ public class EnrolmentService(
             {
                 foreach (var l in module.lessons)
                 {
-                    if (!userLessons.Where(e => e.IsComplete).Select(e => e.LessonId).Contains(l.Id))
+                    if (!userLessons.Where(e => e.IsComplete).Select(e => e.ModuleItemId).Contains(l.Id))
                     {
                         nextLesson = l;
                         break;
@@ -103,7 +103,7 @@ public class EnrolmentService(
             }
         }
 
-        var userLesson = userLessons.SingleOrDefault(e => e.LessonId == id && e.UserId == userId);
+        var userLesson = userLessons.SingleOrDefault(e => e.ModuleItemId == id && e.UserId == userId);
 
         if (id != nextLesson!.Id)
             return Result.Failure<UserLessonResponse>(EnrollmentErrors.InvalidGettingLesson);
@@ -112,7 +112,7 @@ public class EnrolmentService(
         {
             userLesson = new UserLesson
             {
-                LessonId = id,
+                ModuleItemId = id,
                 UserId = userId,
                 UserCourseId = userCourse.Id
             };
@@ -225,7 +225,7 @@ public class EnrolmentService(
             var userLessons = await (
                 from l in _context.Lessons
                 join ul in _context.UserLessons
-                on l.Id equals ul.LessonId into uls
+                on l.Id equals ul.ModuleItemId into uls
                 from ul in uls.DefaultIfEmpty()
                 select new
                 {
@@ -239,7 +239,7 @@ public class EnrolmentService(
                             ul.LastWatchedTimestamp ?? null,
                             ul == null ? null : ul.StartDate,
                             ul == null ? null : ul.LastInteractDate,
-                            ul.FinshedDate ?? null,
+                            ul.EndDate ?? null,
                             l.Resources.Adapt<List<RecourseResponse>>()
                         )
                 }
@@ -279,7 +279,7 @@ public class EnrolmentService(
         if (userCourse.IsCompleted)
             return Result.Success();
 
-        if (await _context.UserLessons.SingleOrDefaultAsync(e => e.LessonId == id && e.UserId == userId, cancellationToken) is not { } userLesson)
+        if (await _context.UserLessons.SingleOrDefaultAsync(e => e.ModuleItemId == id && e.UserId == userId, cancellationToken) is not { } userLesson)
             return EnrollmentErrors.NotFoundEnrollment;
 
         if (userLesson.IsComplete)
@@ -296,7 +296,7 @@ public class EnrolmentService(
         userCourse.Progress = p;
 
         userLesson.IsComplete = true;
-        userLesson.FinshedDate = DateTime.UtcNow;
+        userLesson.EndDate = DateTime.UtcNow;
         userLesson.LastInteractDate = DateTime.UtcNow;
         
         await _context.SaveChangesAsync(cancellationToken);

@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace Courses.DataAccess.Presistence.Migrations
+namespace Courses.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigrationV02 : Migration
+    public partial class DropedMigrationV02 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -72,18 +72,6 @@ namespace Courses.DataAccess.Presistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tags",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tags", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -208,36 +196,13 @@ namespace Courses.DataAccess.Presistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RefreshTokens",
-                columns: table => new
-                {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ExpiresOn = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreateOn = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    RevokeOn = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RefreshTokens", x => new { x.UserId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_RefreshTokens_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Courses",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    ThumbnailId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Thumbnail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Level = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Duration = table.Column<TimeSpan>(type: "time", nullable: true),
                     Price = table.Column<double>(type: "float", nullable: false),
@@ -262,12 +227,29 @@ namespace Courses.DataAccess.Presistence.Migrations
                         column: x => x.UpdatedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExpiresOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreateOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RevokeOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => new { x.UserId, x.Id });
                     table.ForeignKey(
-                        name: "FK_Courses_UploadedFiles_ThumbnailId",
-                        column: x => x.ThumbnailId,
-                        principalTable: "UploadedFiles",
+                        name: "FK_RefreshTokens_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -296,37 +278,13 @@ namespace Courses.DataAccess.Presistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CourseTag",
-                columns: table => new
-                {
-                    CoursesId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TagsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CourseTag", x => new { x.CoursesId, x.TagsId });
-                    table.ForeignKey(
-                        name: "FK_CourseTag_Courses_CoursesId",
-                        column: x => x.CoursesId,
-                        principalTable: "Courses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_CourseTag_Tags_TagsId",
-                        column: x => x.TagsId,
-                        principalTable: "Tags",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Modules",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Order = table.Column<int>(type: "int", nullable: false),
+                    OrderIndex = table.Column<int>(type: "int", nullable: false),
                     IsDisable = table.Column<bool>(type: "bit", nullable: false),
                     Duration = table.Column<TimeSpan>(type: "time", nullable: false),
                     CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -358,18 +316,38 @@ namespace Courses.DataAccess.Presistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Exams",
+                name: "Questions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    Text = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    IsDisable = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Questions_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ModuleItems",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
-                    Degree = table.Column<float>(type: "real", nullable: false),
-                    IsDisable = table.Column<bool>(type: "bit", nullable: false),
+                    IsDisable = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     Duration = table.Column<TimeSpan>(type: "time", nullable: false),
                     ModuleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    OrderIndex = table.Column<int>(type: "int", nullable: false),
+                    ItemType = table.Column<int>(type: "int", nullable: false),
                     CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
@@ -377,25 +355,20 @@ namespace Courses.DataAccess.Presistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Exams", x => x.Id);
+                    table.PrimaryKey("PK_ModuleItems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Exams_AspNetUsers_CreatedById",
+                        name: "FK_ModuleItems_AspNetUsers_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Exams_AspNetUsers_UpdatedById",
+                        name: "FK_ModuleItems_AspNetUsers_UpdatedById",
                         column: x => x.UpdatedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Exams_Courses_CourseId",
-                        column: x => x.CourseId,
-                        principalTable: "Courses",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Exams_Modules_ModuleId",
+                        name: "FK_ModuleItems_Modules_ModuleId",
                         column: x => x.ModuleId,
                         principalTable: "Modules",
                         principalColumn: "Id",
@@ -403,41 +376,67 @@ namespace Courses.DataAccess.Presistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Options",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Text = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    QuestionId = table.Column<int>(type: "int", nullable: false),
+                    IsCorrect = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Options", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Options_Questions_QuestionId",
+                        column: x => x.QuestionId,
+                        principalTable: "Questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Exams",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    NoQuestion = table.Column<int>(type: "int", nullable: false),
+                    CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Exams", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Exams_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Exams_ModuleItems_Id",
+                        column: x => x.Id,
+                        principalTable: "ModuleItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Lessons",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    ModuleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     FileId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Order = table.Column<int>(type: "int", nullable: false),
-                    Duration = table.Column<TimeSpan>(type: "time", nullable: false),
-                    IsPreview = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedById = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    IsPreview = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Lessons", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Lessons_AspNetUsers_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "AspNetUsers",
+                        name: "FK_Lessons_ModuleItems_Id",
+                        column: x => x.Id,
+                        principalTable: "ModuleItems",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Lessons_AspNetUsers_UpdatedById",
-                        column: x => x.UpdatedById,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Lessons_Modules_ModuleId",
-                        column: x => x.ModuleId,
-                        principalTable: "Modules",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Lessons_UploadedFiles_FileId",
                         column: x => x.FileId,
@@ -447,23 +446,25 @@ namespace Courses.DataAccess.Presistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Questions",
+                name: "ExamQuestion",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Text = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    ExamId = table.Column<int>(type: "int", nullable: false),
-                    Points = table.Column<float>(type: "real", nullable: false),
-                    IsDisable = table.Column<bool>(type: "bit", nullable: false)
+                    ExamId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    QuestionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Questions", x => x.Id);
+                    table.PrimaryKey("PK_ExamQuestion", x => new { x.ExamId, x.QuestionId });
                     table.ForeignKey(
-                        name: "FK_Questions_Exams_ExamId",
+                        name: "FK_ExamQuestion_Exams_ExamId",
                         column: x => x.ExamId,
                         principalTable: "Exams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ExamQuestion_Questions_QuestionId",
+                        column: x => x.QuestionId,
+                        principalTable: "Questions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -472,13 +473,15 @@ namespace Courses.DataAccess.Presistence.Migrations
                 name: "UserExams",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Score = table.Column<float>(type: "real", nullable: false),
+                    ExamId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ExamId = table.Column<int>(type: "int", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsComplete = table.Column<bool>(type: "bit", nullable: false),
+                    Duration = table.Column<TimeSpan>(type: "time", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETDATE()"),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Score = table.Column<float>(type: "real", nullable: false)
+                    ModuleItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -493,6 +496,11 @@ namespace Courses.DataAccess.Presistence.Migrations
                         name: "FK_UserExams_Exams_ExamId",
                         column: x => x.ExamId,
                         principalTable: "Exams",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_UserExams_ModuleItems_ModuleItemId",
+                        column: x => x.ModuleItemId,
+                        principalTable: "ModuleItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -533,7 +541,9 @@ namespace Courses.DataAccess.Presistence.Migrations
                     CourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     LastAccessLessonId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     LastWatchTimestamp = table.Column<TimeSpan>(type: "time", nullable: true),
-                    CompleteStatus = table.Column<string>(type: "nvarchar(max)", nullable: false, defaultValue: "InProgress"),
+                    Progress = table.Column<float>(type: "real", nullable: false),
+                    IsCompleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    IsBlocked = table.Column<bool>(type: "bit", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastInteractDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FinshedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -561,63 +571,12 @@ namespace Courses.DataAccess.Presistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserLessons",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LessonId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    IsComplete = table.Column<bool>(type: "bit", nullable: false),
-                    LastWatchedTimestamp = table.Column<TimeSpan>(type: "time", nullable: true),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LastInteractDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    FinshedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserLessons", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserLessons_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_UserLessons_Lessons_LessonId",
-                        column: x => x.LessonId,
-                        principalTable: "Lessons",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Optinos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Text = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    QuestionId = table.Column<int>(type: "int", nullable: false),
-                    IsCorrect = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Optinos", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Optinos_Questions_QuestionId",
-                        column: x => x.QuestionId,
-                        principalTable: "Questions",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Answers",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserExamId = table.Column<int>(type: "int", nullable: false),
+                    UserExamId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     QuestionId = table.Column<int>(type: "int", nullable: false),
                     OptionId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -625,9 +584,9 @@ namespace Courses.DataAccess.Presistence.Migrations
                 {
                     table.PrimaryKey("PK_Answers", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Answers_Optinos_OptionId",
+                        name: "FK_Answers_Options_OptionId",
                         column: x => x.OptionId,
-                        principalTable: "Optinos",
+                        principalTable: "Options",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -644,19 +603,63 @@ namespace Courses.DataAccess.Presistence.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "UserLessons",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserCourseId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LastWatchedTimestamp = table.Column<TimeSpan>(type: "time", nullable: true),
+                    LastInteractDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LessonId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    IsComplete = table.Column<bool>(type: "bit", nullable: false),
+                    Duration = table.Column<TimeSpan>(type: "time", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ModuleItemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserLessons", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserLessons_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserLessons_Lessons_LessonId",
+                        column: x => x.LessonId,
+                        principalTable: "Lessons",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_UserLessons_ModuleItems_ModuleItemId",
+                        column: x => x.ModuleItemId,
+                        principalTable: "ModuleItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserLessons_UserCourses_UserCourseId",
+                        column: x => x.UserCourseId,
+                        principalTable: "UserCourses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "IsDefualt", "IsDeleted", "Name", "NormalizedName" },
                 values: new object[,]
                 {
                     { "019409cc-7157-71a4-99d5-e295c82679db", "019409cc-285c-796f-ba84-6d2d43a19e2e", false, false, "Admin", "ADMIN" },
-                    { "019409cd-931b-7028-b668-bbc65d9213e0", "019409cd-7700-71c9-add3-699453281dc4", false, false, "Student", "STUDENT" }
+                    { "019409cd-931b-7028-b668-bbc65d9213e0", "019409cd-7700-71c9-add3-699453281dc4", false, false, "User", "USER" }
                 });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "DateOfBirth", "Email", "EmailConfirmed", "FirstName", "IsDisabled", "LastName", "Level", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "Rating", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "019409bf-3ae7-7cdf-995b-db4620f2ff5f", 0, "019409C1-DB8B-7B6F-A8A1-8E35FB4D0748", new DateOnly(2025, 1, 6), "admin@courses.edu", true, "Course", false, "Admin", "", false, null, "ADMIN@COURSES.EDU", "ADMIN", "AQAAAAIAAYagAAAAEB1mj/z+fDc1fii5XJzaIEYd/69RgtrQkCyJ+fbd3r00ddSKPyjGrvAJm2WNy/okcw==", null, false, null, "019409c1-af2c-7e25-bc46-da6e10412d65", false, "admin" });
+                values: new object[] { "019409bf-3ae7-7cdf-995b-db4620f2ff5f", 0, "019409C1-DB8B-7B6F-A8A1-8E35FB4D0748", new DateOnly(2021, 10, 10), "admin@courses.edu", true, "Course", false, "Admin", "", false, null, "ADMIN@COURSES.EDU", "ADMIN", "AQAAAAIAAYagAAAAEB1mj/z+fDc1fii5XJzaIEYd/69RgtrQkCyJ+fbd3r00ddSKPyjGrvAJm2WNy/okcw==", null, false, null, "019409c1-af2c-7e25-bc46-da6e10412d65", false, "admin" });
 
             migrationBuilder.InsertData(
                 table: "AspNetRoleClaims",
@@ -668,18 +671,38 @@ namespace Courses.DataAccess.Presistence.Migrations
                     { 3, "permissions", "category:update", "019409cc-7157-71a4-99d5-e295c82679db" },
                     { 4, "permissions", "category:delete", "019409cc-7157-71a4-99d5-e295c82679db" },
                     { 5, "permissions", "course:add", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 6, "permissions", "course:update", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 7, "permissions", "course:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 8, "permissions", "module:add", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 9, "permissions", "module:update", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 10, "permissions", "module:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 11, "permissions", "lesson:add", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 12, "permissions", "lesson:update", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 13, "permissions", "lesson:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 14, "permissions", "enrollment:add", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 15, "permissions", "role:add", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 16, "permissions", "role:update", "019409cc-7157-71a4-99d5-e295c82679db" },
-                    { 17, "permissions", "role:toggle", "019409cc-7157-71a4-99d5-e295c82679db" }
+                    { 6, "permissions", "course:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 7, "permissions", "course:update", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 8, "permissions", "course:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 9, "permissions", "course:blockuser", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 10, "permissions", "module:add", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 11, "permissions", "module:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 12, "permissions", "module:update", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 13, "permissions", "module:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 14, "permissions", "lesson:add", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 15, "permissions", "lesson:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 16, "permissions", "lesson:update", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 17, "permissions", "lesson:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 18, "permissions", "role:add", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 19, "permissions", "role:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 20, "permissions", "role:update", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 21, "permissions", "role:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 22, "permissions", "exam:add", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 23, "permissions", "exam:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 24, "permissions", "exam:update", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 25, "permissions", "exam:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 26, "permissions", "question:add", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 27, "permissions", "question:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 28, "permissions", "question:update", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 29, "permissions", "question:toggle", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 30, "permissions", "account:update", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 31, "permissions", "account:changePassword", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 32, "permissions", "account:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 33, "permissions", "answer:add", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 34, "permissions", "answer:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 35, "permissions", "enrolment:add", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 36, "permissions", "enrolment:read", "019409cc-7157-71a4-99d5-e295c82679db" },
+                    { 37, "permissions", "enrolment:update", "019409cc-7157-71a4-99d5-e295c82679db" }
                 });
 
             migrationBuilder.InsertData(
@@ -757,19 +780,14 @@ namespace Courses.DataAccess.Presistence.Migrations
                 column: "CreatedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Courses_ThumbnailId",
-                table: "Courses",
-                column: "ThumbnailId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Courses_UpdatedById",
                 table: "Courses",
                 column: "UpdatedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseTag_TagsId",
-                table: "CourseTag",
-                column: "TagsId");
+                name: "IX_ExamQuestion_QuestionId",
+                table: "ExamQuestion",
+                column: "QuestionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Exams_CourseId",
@@ -777,45 +795,37 @@ namespace Courses.DataAccess.Presistence.Migrations
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Exams_CreatedById",
-                table: "Exams",
-                column: "CreatedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Exams_ModuleId",
-                table: "Exams",
-                column: "ModuleId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Exams_UpdatedById",
-                table: "Exams",
-                column: "UpdatedById");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Lessons_CreatedById",
-                table: "Lessons",
-                column: "CreatedById");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Lessons_FileId",
                 table: "Lessons",
                 column: "FileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Lessons_ModuleId_Title",
-                table: "Lessons",
+                name: "IX_ModuleItems_CreatedById",
+                table: "ModuleItems",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ModuleItems_ModuleId_OrderIndex",
+                table: "ModuleItems",
+                columns: new[] { "ModuleId", "OrderIndex" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ModuleItems_ModuleId_Title",
+                table: "ModuleItems",
                 columns: new[] { "ModuleId", "Title" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Lessons_UpdatedById",
-                table: "Lessons",
+                name: "IX_ModuleItems_UpdatedById",
+                table: "ModuleItems",
                 column: "UpdatedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Modules_CourseId",
+                name: "IX_Modules_CourseId_OrderIndex",
                 table: "Modules",
-                column: "CourseId");
+                columns: new[] { "CourseId", "OrderIndex" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Modules_CreatedById",
@@ -834,25 +844,25 @@ namespace Courses.DataAccess.Presistence.Migrations
                 column: "UpdatedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Optinos_QuestionId",
-                table: "Optinos",
+                name: "IX_Options_QuestionId",
+                table: "Options",
                 column: "QuestionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Questions_ExamId",
+                name: "IX_Options_Text_QuestionId",
+                table: "Options",
+                columns: new[] { "Text", "QuestionId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Questions_CourseId",
                 table: "Questions",
-                column: "ExamId");
+                column: "CourseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Recourses_FileId",
                 table: "Recourses",
                 column: "FileId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Tags_Title",
-                table: "Tags",
-                column: "Title",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserCourses_CourseId",
@@ -875,6 +885,11 @@ namespace Courses.DataAccess.Presistence.Migrations
                 column: "ExamId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserExams_ModuleItemId",
+                table: "UserExams",
+                column: "ModuleItemId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserExams_UserId",
                 table: "UserExams",
                 column: "UserId");
@@ -883,6 +898,16 @@ namespace Courses.DataAccess.Presistence.Migrations
                 name: "IX_UserLessons_LessonId",
                 table: "UserLessons",
                 column: "LessonId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserLessons_ModuleItemId",
+                table: "UserLessons",
+                column: "ModuleItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserLessons_UserCourseId",
+                table: "UserLessons",
+                column: "UserCourseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserLessons_UserId",
@@ -915,7 +940,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                 name: "CourseCategories");
 
             migrationBuilder.DropTable(
-                name: "CourseTag");
+                name: "ExamQuestion");
 
             migrationBuilder.DropTable(
                 name: "Recourses");
@@ -924,13 +949,10 @@ namespace Courses.DataAccess.Presistence.Migrations
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "UserCourses");
-
-            migrationBuilder.DropTable(
                 name: "UserLessons");
 
             migrationBuilder.DropTable(
-                name: "Optinos");
+                name: "Options");
 
             migrationBuilder.DropTable(
                 name: "UserExams");
@@ -942,16 +964,22 @@ namespace Courses.DataAccess.Presistence.Migrations
                 name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Tags");
-
-            migrationBuilder.DropTable(
-                name: "Lessons");
+                name: "UserCourses");
 
             migrationBuilder.DropTable(
                 name: "Questions");
 
             migrationBuilder.DropTable(
                 name: "Exams");
+
+            migrationBuilder.DropTable(
+                name: "Lessons");
+
+            migrationBuilder.DropTable(
+                name: "ModuleItems");
+
+            migrationBuilder.DropTable(
+                name: "UploadedFiles");
 
             migrationBuilder.DropTable(
                 name: "Modules");
@@ -961,9 +989,6 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "UploadedFiles");
         }
     }
 }

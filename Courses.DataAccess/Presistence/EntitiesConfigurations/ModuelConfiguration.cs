@@ -15,5 +15,8 @@ public sealed class ModuelConfiguration : IEntityTypeConfiguration<CourseModule>
         builder.HasIndex(e => new { e.Title, e.CourseId })
             .IsUnique();
 
+        builder.HasIndex(e => new {e.CourseId, e.OrderIndex})
+            .IsUnique();
+
     }
 }

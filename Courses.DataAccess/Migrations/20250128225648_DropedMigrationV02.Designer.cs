@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Courses.DataAccess.Presistence.Migrations
+namespace Courses.DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250127115853_UpdateCourseImage")]
-    partial class UpdateCourseImage
+    [Migration("20250128225648_DropedMigrationV02")]
+    partial class DropedMigrationV02
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,8 +39,8 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserExamId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("UserExamId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -351,7 +351,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<bool>("IsDisable")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Order")
+                    b.Property<int>("OrderIndex")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -367,11 +367,12 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourseId");
-
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("UpdatedById");
+
+                    b.HasIndex("CourseId", "OrderIndex")
+                        .IsUnique();
 
                     b.HasIndex("Title", "CourseId")
                         .IsUnique();
@@ -379,15 +380,25 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.ToTable("Modules", (string)null);
                 });
 
-            modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
+            modelBuilder.Entity("Courses.Business.Entities.ExamQuestion", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.HasKey("ExamId", "QuestionId");
 
-                    b.Property<Guid?>("CourseId")
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("ExamQuestion");
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -410,130 +421,38 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("NoQuestion")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CourseId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("ModuleId");
-
-                    b.HasIndex("UpdatedById");
-
-                    b.ToTable("Exams");
-                });
-
-            modelBuilder.Entity("Courses.Business.Entities.ExamQuestion", b =>
-                {
-                    b.Property<int>("ExamId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ExamId", "QuestionId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("ExamQuestion");
-                });
-
-            modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedById")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<TimeSpan>("Duration")
-                        .HasColumnType("time");
-
-                    b.Property<Guid>("FileId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("IsPreview")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedById");
-
-                    b.HasIndex("FileId");
-
-                    b.HasIndex("UpdatedById");
-
-                    b.HasIndex("ModuleId", "Title")
-                        .IsUnique();
-
-                    b.ToTable("Lessons");
-                });
-
-            modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid?>("GuidItemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Index")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IntItemId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ItemType")
                         .HasColumnType("int");
 
                     b.Property<Guid>("ModuleId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedById")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ModuleId", "Index")
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ModuleId", "OrderIndex")
                         .IsUnique();
 
                     b.ToTable("ModuleItems");
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Option", b =>
@@ -676,11 +595,9 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             modelBuilder.Entity("Courses.Business.Entities.UserExam", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeSpan?>("Duration")
                         .HasColumnType("time");
@@ -688,8 +605,14 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("ExamId")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("ExamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsComplete")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ModuleItemId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<float>("Score")
                         .HasColumnType("real");
@@ -707,6 +630,8 @@ namespace Courses.DataAccess.Presistence.Migrations
 
                     b.HasIndex("ExamId");
 
+                    b.HasIndex("ModuleItemId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("UserExams");
@@ -718,7 +643,10 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("FinshedDate")
+                    b.Property<TimeSpan?>("Duration")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsComplete")
@@ -730,7 +658,10 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Property<TimeSpan?>("LastWatchedTimestamp")
                         .HasColumnType("time");
 
-                    b.Property<Guid>("LessonId")
+                    b.Property<Guid?>("LessonId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ModuleItemId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartDate")
@@ -746,6 +677,8 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LessonId");
+
+                    b.HasIndex("ModuleItemId");
 
                     b.HasIndex("UserCourseId");
 
@@ -1128,6 +1061,39 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
+                {
+                    b.HasBaseType("Courses.Business.Entities.ModuleItem");
+
+                    b.Property<Guid?>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("NoQuestion")
+                        .HasColumnType("int");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
+                {
+                    b.HasBaseType("Courses.Business.Entities.ModuleItem");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsPreview")
+                        .HasColumnType("bit");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("ModuleId", "Title")
+                        .IsUnique();
+
+                    b.ToTable("Lessons");
+                });
+
             modelBuilder.Entity("Courses.Business.Entities.Answer", b =>
                 {
                     b.HasOne("Courses.Business.Entities.Option", "Option")
@@ -1253,35 +1219,6 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Navigation("UpdatedBy");
                 });
 
-            modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
-                {
-                    b.HasOne("Courses.Business.Entities.Course", null)
-                        .WithMany("Exams")
-                        .HasForeignKey("CourseId");
-
-                    b.HasOne("Courses.Business.Entities.ApplicationUser", "CreatedBy")
-                        .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Courses.Business.Entities.CourseModule", "Module")
-                        .WithMany("Exams")
-                        .HasForeignKey("ModuleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Courses.Business.Entities.ApplicationUser", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedById");
-
-                    b.Navigation("CreatedBy");
-
-                    b.Navigation("Module");
-
-                    b.Navigation("UpdatedBy");
-                });
-
             modelBuilder.Entity("Courses.Business.Entities.ExamQuestion", b =>
                 {
                     b.HasOne("Courses.Business.Entities.Exam", "Exam")
@@ -1301,7 +1238,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
+            modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
                 {
                     b.HasOne("Courses.Business.Entities.ApplicationUser", "CreatedBy")
                         .WithMany()
@@ -1309,14 +1246,8 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Courses.Business.Entities.UploadedFile", "File")
-                        .WithMany()
-                        .HasForeignKey("FileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Courses.Business.Entities.CourseModule", "Module")
-                        .WithMany("Lessons")
+                        .WithMany("ModuleItems")
                         .HasForeignKey("ModuleId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1325,65 +1256,11 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
-                    b.OwnsMany("Courses.Business.Entities.Recourse", "Resources", b1 =>
-                        {
-                            b1.Property<Guid>("LessonId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
-
-                            b1.Property<Guid?>("FileId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<string>("Key")
-                                .IsRequired()
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.Property<string>("Value")
-                                .HasColumnType("nvarchar(max)");
-
-                            b1.HasKey("LessonId", "Id");
-
-                            b1.HasIndex("FileId");
-
-                            b1.ToTable("Recourses", (string)null);
-
-                            b1.HasOne("Courses.Business.Entities.UploadedFile", "File")
-                                .WithMany()
-                                .HasForeignKey("FileId");
-
-                            b1.WithOwner("Lesson")
-                                .HasForeignKey("LessonId");
-
-                            b1.Navigation("File");
-
-                            b1.Navigation("Lesson");
-                        });
-
                     b.Navigation("CreatedBy");
 
-                    b.Navigation("File");
-
                     b.Navigation("Module");
-
-                    b.Navigation("Resources");
 
                     b.Navigation("UpdatedBy");
-                });
-
-            modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
-                {
-                    b.HasOne("Courses.Business.Entities.CourseModule", "Module")
-                        .WithMany("ModuleItems")
-                        .HasForeignKey("ModuleId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Module");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Option", b =>
@@ -1435,9 +1312,13 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             modelBuilder.Entity("Courses.Business.Entities.UserExam", b =>
                 {
-                    b.HasOne("Courses.Business.Entities.Exam", "Exam")
+                    b.HasOne("Courses.Business.Entities.Exam", null)
                         .WithMany("UserExams")
-                        .HasForeignKey("ExamId")
+                        .HasForeignKey("ExamId");
+
+                    b.HasOne("Courses.Business.Entities.ModuleItem", "ModuleItem")
+                        .WithMany()
+                        .HasForeignKey("ModuleItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1447,16 +1328,20 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Exam");
+                    b.Navigation("ModuleItem");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserLesson", b =>
                 {
-                    b.HasOne("Courses.Business.Entities.Lesson", "Lesson")
+                    b.HasOne("Courses.Business.Entities.Lesson", null)
                         .WithMany("UserLessons")
-                        .HasForeignKey("LessonId")
+                        .HasForeignKey("LessonId");
+
+                    b.HasOne("Courses.Business.Entities.ModuleItem", "ModuleItem")
+                        .WithMany()
+                        .HasForeignKey("ModuleItemId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1472,7 +1357,7 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Lesson");
+                    b.Navigation("ModuleItem");
 
                     b.Navigation("User");
 
@@ -1530,6 +1415,77 @@ namespace Courses.DataAccess.Presistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
+                {
+                    b.HasOne("Courses.Business.Entities.Course", null)
+                        .WithMany("Exams")
+                        .HasForeignKey("CourseId");
+
+                    b.HasOne("Courses.Business.Entities.ModuleItem", null)
+                        .WithOne()
+                        .HasForeignKey("Courses.Business.Entities.Exam", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
+                {
+                    b.HasOne("Courses.Business.Entities.UploadedFile", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Courses.Business.Entities.ModuleItem", null)
+                        .WithOne()
+                        .HasForeignKey("Courses.Business.Entities.Lesson", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsMany("Courses.Business.Entities.Recourse", "Resources", b1 =>
+                        {
+                            b1.Property<Guid>("LessonId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid?>("FileId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Key")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Value")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("LessonId", "Id");
+
+                            b1.HasIndex("FileId");
+
+                            b1.ToTable("Recourses", (string)null);
+
+                            b1.HasOne("Courses.Business.Entities.UploadedFile", "File")
+                                .WithMany()
+                                .HasForeignKey("FileId");
+
+                            b1.WithOwner("Lesson")
+                                .HasForeignKey("LessonId");
+
+                            b1.Navigation("File");
+
+                            b1.Navigation("Lesson");
+                        });
+
+                    b.Navigation("File");
+
+                    b.Navigation("Resources");
+                });
+
             modelBuilder.Entity("Courses.Business.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("UserCourses");
@@ -1553,23 +1509,7 @@ namespace Courses.DataAccess.Presistence.Migrations
 
             modelBuilder.Entity("Courses.Business.Entities.CourseModule", b =>
                 {
-                    b.Navigation("Exams");
-
-                    b.Navigation("Lessons");
-
                     b.Navigation("ModuleItems");
-                });
-
-            modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
-                {
-                    b.Navigation("ExamQuestions");
-
-                    b.Navigation("UserExams");
-                });
-
-            modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
-                {
-                    b.Navigation("UserLessons");
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Question", b =>
@@ -1587,6 +1527,18 @@ namespace Courses.DataAccess.Presistence.Migrations
             modelBuilder.Entity("Courses.Business.Entities.UserExam", b =>
                 {
                     b.Navigation("UserAnswers");
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.Exam", b =>
+                {
+                    b.Navigation("ExamQuestions");
+
+                    b.Navigation("UserExams");
+                });
+
+            modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
+                {
+                    b.Navigation("UserLessons");
                 });
 #pragma warning restore 612, 618
         }

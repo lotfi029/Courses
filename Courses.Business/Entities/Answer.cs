@@ -3,7 +3,7 @@
 public class Answer
 {
     public int Id { get; set; }
-    public int UserExamId { get; set; }
+    public Guid UserExamId { get; set; }
     public int QuestionId { get; set; }
     public int OptionId { get; set; }
 

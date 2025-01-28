@@ -12,7 +12,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
     public async Task<Result> AddAnswer(Guid examId, string userId, IEnumerable<AnswerValues> request, CancellationToken cancellationToken = default)
     {
-        if (await _context.UserExams.SingleOrDefaultAsync(e => e.UserId == userId && e.ExamId == examId && e.EndDate == null,cancellationToken) is not { } userExam)
+        if (await _context.UserExams.SingleOrDefaultAsync(e => e.UserId == userId && e.ModuleItemId == examId && e.EndDate == null,cancellationToken) is not { } userExam)
             return UserExamErrors.InvalidSubmitExam; // exam not found
 
         var examQuestionid = await _context.ExamQuestion
@@ -68,7 +68,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         if (exam.CreatedById == userId)
             return Result.Failure<ExamResponse>(ExamErrors.InvalidEnrollment);
 
-        if (await _context.UserExams.AnyAsync(e => e.ExamId == examId && e.UserId == userId, cancellationToken))
+        if (await _context.UserExams.AnyAsync(e => e.ModuleItemId == examId && e.UserId == userId, cancellationToken))
             return Result.Failure<ExamResponse>(UserExamErrors.DuplicatedAnswer);
 
         if (exam.IsDisable)
@@ -76,7 +76,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         var userExam = new UserExam
         {
-            ExamId = examId,
+            ModuleItemId = examId,
             UserId = userId
         };
 
@@ -89,7 +89,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
     }
     public async Task<Result<ExamResponse>> ReEnrolExamAsync(Guid examId, string userId, CancellationToken cancellationToken = default)
     {
-        var userExams = await _context.UserExams.Where(e => e.ExamId == examId && e.UserId == userId).ToListAsync(cancellationToken);
+        var userExams = await _context.UserExams.Where(e => e.ModuleItemId == examId && e.UserId == userId).ToListAsync(cancellationToken);
         
         if (userExams.Count == 0)
             return Result.Failure<ExamResponse>(UserExamErrors.InvalidEnrollment);
@@ -102,7 +102,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         var userExam = new UserExam                                                        
         {
-            ExamId = examId,
+            ModuleItemId = examId,
             UserId = userId
         };
 
@@ -153,7 +153,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
     public async Task<IEnumerable<UserExamResponse>> GetExamUsersAsync(Exam exam, CancellationToken cancellationToken = default)
     {
         var userExams = await _context.UserExams
-           .Where(e => e.ExamId == exam.Id)
+           .Where(e => e.ModuleItemId == exam.Id)
            .AsNoTracking()
            .ProjectToType<UserExamResponse>()
            .ToListAsync(cancellationToken);
@@ -165,7 +165,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         var query = await (
             from ue in _context.UserExams.Where(e => e.UserId == userId)
             join eq in _context.ExamQuestion
-            on ue.ExamId equals eq.ExamId
+            on ue.ModuleItemId equals eq.ExamId
             join q in _context.Questions
             on eq.QuestionId equals q.Id
             join a in _context.Answers
@@ -173,7 +173,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
             select new
             {
                 ue.Id,
-                ue.ExamId,
+                ue.ModuleItemId,
                 ue.Duration,
                 ue.StartDate,
                 ue.EndDate,
@@ -191,9 +191,9 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
             .ToListAsync(cancellationToken);
 
         var userQuestions = query
-            .GroupBy(g => new { g.Id, g.ExamId, g.Duration, g.StartDate, g.EndDate, g.Score, g.UserId })
+            .GroupBy(g => new { g.Id, g.ModuleItemId, g.Duration, g.StartDate, g.EndDate, g.Score, g.UserId })
             .Select(x => new {
-                x.Key.ExamId,
+                x.Key.ModuleItemId,
                 userExams = new UserExamResponse(
                 x.Key.Id,
                 x.Key.Duration,
@@ -207,7 +207,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
 
         var response = from e in exams
                        join uq in userQuestions
-                       on e.Id equals uq.ExamId into userExam
+                       on e.Id equals uq.ModuleItemId into userExam
                        select new UserExamDetailResponse(
                            e.Id,
                            e.Title,

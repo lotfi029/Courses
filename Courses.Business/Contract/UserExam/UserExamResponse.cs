@@ -1,6 +1,6 @@
 ﻿namespace Courses.Business.Contract.UserExam;
 public record UserExamResponse(
-    int Id,
+    Guid Id,
     TimeSpan? UserDuration,
     DateTime StartDate,
     DateTime? EndDate,
