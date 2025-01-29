@@ -8,6 +8,9 @@ public class LessonRequestValidator : AbstractValidator<LessonRequest>
     {
         RuleFor(e => e.Title)
             .Length(3, 400);
+        
+        RuleFor(e => e.Title)
+            .Length(10, 1000);
 
         RuleFor(e => e.Video)
             .SetValidator(new UploadVideoRequestValidator());

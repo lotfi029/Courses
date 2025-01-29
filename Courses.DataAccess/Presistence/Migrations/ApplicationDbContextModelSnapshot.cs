@@ -47,7 +47,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("UserExamId");
 
-                    b.ToTable("Answers");
+                    b.ToTable("Answers", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.ApplicationRole", b =>
@@ -236,7 +236,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Course", b =>
@@ -297,7 +297,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Courses");
+                    b.ToTable("Courses", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.CourseCategories", b =>
@@ -318,7 +318,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("CourseCategories");
+                    b.ToTable("CourseCategories", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.CourseModule", b =>
@@ -389,7 +389,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("ExamQuestion");
+                    b.ToTable("ExamQuestion", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.ModuleItem", b =>
@@ -447,7 +447,7 @@ namespace Courses.DataAccess.Migrations
                     b.HasIndex("ModuleId", "OrderIndex")
                         .IsUnique();
 
-                    b.ToTable("ModuleItems");
+                    b.ToTable("ModuleItems", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -478,7 +478,7 @@ namespace Courses.DataAccess.Migrations
                     b.HasIndex("Text", "QuestionId")
                         .IsUnique();
 
-                    b.ToTable("Options");
+                    b.ToTable("Options", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Question", b =>
@@ -506,7 +506,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UploadedFile", b =>
@@ -537,7 +537,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UploadedFiles");
+                    b.ToTable("UploadedFiles", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserCourse", b =>
@@ -587,7 +587,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserCourses");
+                    b.ToTable("UserCourses", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserExam", b =>
@@ -631,7 +631,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserExams");
+                    b.ToTable("UserExams", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.UserLesson", b =>
@@ -681,7 +681,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserLessons");
+                    b.ToTable("UserLessons", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1070,7 +1070,7 @@ namespace Courses.DataAccess.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Exams");
+                    b.ToTable("Exams", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Lesson", b =>
@@ -1088,7 +1088,7 @@ namespace Courses.DataAccess.Migrations
                     b.HasIndex("ModuleId", "Title")
                         .IsUnique();
 
-                    b.ToTable("Lessons");
+                    b.ToTable("Lessons", (string)null);
                 });
 
             modelBuilder.Entity("Courses.Business.Entities.Answer", b =>

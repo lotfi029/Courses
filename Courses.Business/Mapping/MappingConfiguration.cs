@@ -35,7 +35,7 @@ public class MappingConfiguration : IRegister
             .Map(dest => dest.NoCompleted, src => src.NoCompleted)
             .Map(dest => dest.NoStudent, src => src.NoEnrollment);
 
-        config.NewConfig<(Course course, List<CategoryResponse> categories), RegularUserCourseResponse>()
+        config.NewConfig<(Course course, List<CategoryResponse> categories), GuestUserCourseResponse>()
             .Map(dest => dest.Categories, src => src.categories)
             .Map(dest => dest, src => src.course);
     }

@@ -4,9 +4,9 @@ using FFmpeg.AutoGen;
 namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-public class UserCoursesController(IUserCourseService userCourseResponse) : ControllerBase
+public class GuestCoursesController(IGuestCourseService userCourseResponse) : ControllerBase
 {
-    private readonly IUserCourseService _userCourseResponse = userCourseResponse;
+    private readonly IGuestCourseService _userCourseResponse = userCourseResponse;
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetCourse(Guid id, CancellationToken cancellationToken)

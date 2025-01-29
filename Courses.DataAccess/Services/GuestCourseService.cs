@@ -2,32 +2,31 @@
 using Courses.Business.Contract.Course;
 
 namespace Courses.DataAccess.Services;
-public class UserCourseService(ApplicationDbContext context) : IUserCourseService
+public class GuestCourseService(ApplicationDbContext context) : IGuestCourseService
 {
     private readonly ApplicationDbContext _context = context;
 
-    public async Task<Result<RegularUserCourseResponse>> GetCourseAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Result<GuestUserCourseResponse>> GetCourseAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var course = await _context.Courses
             .AsNoTracking()
-            //.Include(e => e.Tags)
             .SingleOrDefaultAsync(e => e.Id == id && e.IsPublished, cancellationToken);
 
         if (course is null)
-            return Result.Failure<RegularUserCourseResponse>(CourseErrors.NotFound);
+            return Result.Failure<GuestUserCourseResponse>(CourseErrors.NotFound);
 
         var categoryResponse = await _context.CourseCategories
-            .AsNoTracking()
             .Include(e => e.Category)
             .Where(e => e.CourseId == id)
             .Select(e => new CategoryResponse(e.Category.Id, e.Category.Title, e.Category.Description))
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
 
-        var response = (course, categoryResponse ?? []).Adapt<RegularUserCourseResponse>();
+        var response = (course, categoryResponse ?? []).Adapt<GuestUserCourseResponse>();
 
         return Result.Success(response);
     }
-    public async Task<IEnumerable<RegularUserCourseResponse>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<GuestUserCourseResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var courses = await (
             from c in _context.Courses
@@ -48,7 +47,7 @@ public class UserCourseService(ApplicationDbContext context) : IUserCourseServic
                 catg               
             })
             .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.Thumbnail, x.Duration })
-            .Select(e => new RegularUserCourseResponse(
+            .Select(e => new GuestUserCourseResponse(
                 e.Key.Id,
                 e.Key.Title,
                 e.Key.Description,

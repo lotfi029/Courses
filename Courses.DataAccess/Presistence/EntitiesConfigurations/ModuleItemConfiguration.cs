@@ -8,6 +8,9 @@ public class ModuleItemConfiguration : IEntityTypeConfiguration<ModuleItem>
         builder.HasIndex(e => new { e.ModuleId, e.OrderIndex })
             .IsUnique();
 
+        builder.HasIndex(e => new { e.ModuleId, e.Title })
+            .IsUnique();
+
 
     }
 }

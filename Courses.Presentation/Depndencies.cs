@@ -39,7 +39,7 @@ public static class Depndencies
     {
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ICourseService, CourseService>();
-        services.AddScoped<IUserCourseService, UserCourseService>();
+        services.AddScoped<IGuestCourseService, GuestCourseService>();
         services.AddScoped<IEnrolmentService, EnrolmentService>();
         services.AddScoped<ILessonService, LessonService>();
         services.AddScoped<IModuleService, ModuleService>();

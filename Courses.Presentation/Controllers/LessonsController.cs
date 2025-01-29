@@ -23,10 +23,10 @@ public class LessonsController(
         return result.IsSuccess ? CreatedAtAction(nameof(Get), new { courseId, moduleId, id = result.Value }, null) : result.ToProblem();
     }
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> UpdateTitle([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateLessonTitleRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateTitle([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
-
+        // TODO: find a way to check if the course Id is valid
         var result = await _lessonService.UpdateTitleAsync(id, moduleId, request, userId, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();

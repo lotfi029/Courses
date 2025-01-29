@@ -15,7 +15,5 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
             recourses.ToTable("Recourses");
         });
 
-        builder.HasIndex(e => new {e.ModuleId, e.Title})
-            .IsUnique();
     }
 }

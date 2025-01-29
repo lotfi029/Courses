@@ -1,2 +1,2 @@
 ﻿namespace Courses.Business.Contract.Lesson;
-public record LessonRequest(string Title, IFormFile Video);
+public record LessonRequest(string Title, string Description, IFormFile Video);

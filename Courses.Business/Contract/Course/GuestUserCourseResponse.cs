@@ -2,7 +2,7 @@
 
 namespace Courses.Business.Contract.Course;
 
-public record RegularUserCourseResponse(
+public record GuestUserCourseResponse(
     Guid Id,
     string Title,
     string Description,
