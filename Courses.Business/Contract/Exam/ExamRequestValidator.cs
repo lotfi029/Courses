@@ -6,11 +6,11 @@ public sealed class ExamRequestValidator : AbstractValidator<ExamRequest>
     {
         RuleFor(e => e.Title)
             .NotEmpty()
-            .Length(10, 450);
+            .Length(3, 450);
 
         RuleFor(e => e.Description)
             .NotEmpty()
-            .Length(100, 10000);
+            .Length(10, 10000);
 
         RuleFor(e => e.Duration)
             .NotNull();

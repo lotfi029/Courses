@@ -53,7 +53,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         userExam.Score = score;
         userExam.EndDate = DateTime.UtcNow;
 
-        userExam.Duration = userExam.StartDate - userExam.EndDate;
+        userExam.Duration = userExam.EndDate - userExam.StartDate;
 
         await _context.Answers.AddRangeAsync(answers, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
@@ -143,9 +143,11 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
         
         var exams = await _context.Exams
             .Where(e => moduleIds.Contains(e.ModuleId))
+            .Select(e => new Exam { Id = e.Id, Title = e.Title, Description = e.Description, Duration = e.Duration})
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        
 
         var response = await GetUserExams(exams, userId, cancellationToken);
 

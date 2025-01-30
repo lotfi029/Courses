@@ -8,7 +8,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
 {
     private readonly IAnswerService _answerService = answerService;
 
-    [HttpPost("{examId:int}")]
+    [HttpPost("{examId:guid}")]
     public async Task<IActionResult> EnrollExamAsync([FromRoute]Guid examId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -18,7 +18,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
         return result.IsSuccess ?  Ok(result.Value) : result.ToProblem();
     }
 
-    [HttpPost("{examId:int}/submit-answer")]
+    [HttpPost("{examId:guid}/submit-answer")]
     public async Task<IActionResult> SubmitAnswer([FromRoute]Guid examId,[FromBody] AnswerRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -27,7 +27,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
-    [HttpPost("{id:int}/re-enrol")]
+    [HttpPost("{examId:guid}/re-enrol")]
     public async Task<IActionResult> ReEnrolExam([FromRoute] Guid examId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -36,7 +36,7 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
-    [HttpGet("{id:int}")]
+    [HttpGet("{examId:guid}")]
     public async Task<IActionResult> Get([FromRoute] Guid examId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -45,12 +45,12 @@ public class AnswersController(IAnswerService answerService) : ControllerBase
 
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
-    [HttpGet("{courseId:guid}")]
-    public async Task<IActionResult> GetAll([FromRoute] Guid courseId, CancellationToken cancellationToken)
+    [HttpGet("{moduleId:guid}/in-course")]
+    public async Task<IActionResult> GetAll([FromRoute] Guid moduleId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
 
-        var result = await _answerService.GetAllAsync(courseId, userId, cancellationToken);
+        var result = await _answerService.GetAllAsync(moduleId, userId, cancellationToken); // TODO: Updte this to return right response
 
         return Ok(result);
     }

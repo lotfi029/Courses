@@ -121,7 +121,7 @@ public class ExamService(
         if (await _context.Exams.FindAsync([id], cancellationToken) is not { } exam)
             return ExamErrors.NotFoundExam;
 
-        if (exam.CreatedById !=  userId)
+        if (exam.CreatedById != userId)
             return UserErrors.UnAutherizeAccess;
 
         if (await _context.ExamQuestion.CountAsync(e => e.ExamId == id, cancellationToken) < 10)
