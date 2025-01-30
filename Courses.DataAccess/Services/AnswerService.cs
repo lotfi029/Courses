@@ -116,6 +116,7 @@ public class AnswerService(ApplicationDbContext context) : IAnswerService
     public async Task<Result<UserExamDetailResponse>> GetAsync(Guid examId, string userId, CancellationToken cancellationToken)
     {
         var exam = await _context.Exams
+            .ProjectToType<Exam>()
             .SingleOrDefaultAsync(e => e.Id == examId, cancellationToken);
 
         if (exam is null)

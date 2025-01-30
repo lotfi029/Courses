@@ -18,8 +18,16 @@ public class ExamService(
         if (await _context.Exams.AnyAsync(e => e.Title == request.Title && e.ModuleId == moduleId, cancellationToken))
             return Result.Failure<Guid>(ExamErrors.DuplicatedTitle);
 
+        var lastModuleItemNo = await _context.ModuleItems
+            .Where(e => e.ModuleId == moduleId)
+            .Select(e => e.OrderIndex)
+            .OrderBy(e => e)
+            .LastOrDefaultAsync(cancellationToken);
+
+
         var exam = request.Adapt<Exam>();
         exam.ModuleId = moduleId;
+        exam.OrderIndex = lastModuleItemNo + 1;
         exam.IsDisable = true;
 
         await _context.Exams.AddAsync(exam, cancellationToken);
@@ -128,6 +136,7 @@ public class ExamService(
     public async Task<Result<ExamResponse>> GetAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
         var exam = await _context.Exams
+            .Select(x => new { x.Id, x.Title, x.Description, x.Duration, x.CreatedById })
             .SingleOrDefaultAsync(e => e.Id == id && e.CreatedById == userId, cancellationToken);
 
         if (exam is null)
@@ -140,17 +149,18 @@ public class ExamService(
                 q => q.Id,
                 eq => eq.QuestionId,
                 (question, _) => question.Adapt<QuestionResponse>()
-            ).ToListAsync(cancellationToken);
+            )
+            .ToListAsync(cancellationToken);
 
         var response = new ExamResponse(exam.Id, exam.Title, exam.Description, exam.Duration, null,question);
 
         return Result.Success(response);
     }
 
-    public async Task<IEnumerable<ExamResponse>> GetModuleExamsAsync(Guid id, string userId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<ExamResponse>> GetModuleExamsAsync(Guid moduleId, string userId, CancellationToken cancellationToken)
     {
         var courseId = await _context.Modules
-            .Where(e => e.Id == id)
+            .Where(e => e.Id == moduleId)
             .Select(e => e.CourseId)
             .SingleOrDefaultAsync(cancellationToken);
 

@@ -12,5 +12,8 @@ public class ExamConfiguration : IEntityTypeConfiguration<Exam>
 
         builder.Property(e => e.IsDisable)
             .HasDefaultValue(true);
+
+        builder.HasIndex(e => new { e.ModuleId, e.Title })
+            .IsUnique();
     }
 }
