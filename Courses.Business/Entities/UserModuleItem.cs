@@ -10,4 +10,6 @@ public class UserModuleItem
     public DateTime? EndDate { get; set; }
     public Guid ModuleItemId {  get; set; }
     public ModuleItem ModuleItem { get; set; } = default!;
+    public ApplicationUser User { get; set; } = default!;
+    
 }

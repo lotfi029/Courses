@@ -15,6 +15,6 @@ public record UserCourseResponse (
     bool IsCompleted,
     DateTime LastInteractDate,
     DateTime? FinshedDate,
-    IList<UserModuleResponse>? Modules,
-    IList<CategoryResponse>? Categories
+    ICollection<UserModuleResponse>? Modules,
+    ICollection<CategoryResponse>? Categories
 );

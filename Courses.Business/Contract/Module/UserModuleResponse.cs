@@ -7,5 +7,5 @@ public record UserModuleResponse(
     string Title,
     string Description,
     TimeSpan Duration,
-    IList<UserLessonResponse> Lessons
+    ICollection<UserModuleItemResponse> ModuleItems
 );

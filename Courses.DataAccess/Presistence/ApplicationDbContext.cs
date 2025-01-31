@@ -17,6 +17,7 @@ public class ApplicationDbContext(
     public DbSet<Answer> Answers { get; set; }
     public DbSet<UserCourse> UserCourses { get; set; }
     public DbSet<UserLesson> UserLessons { get; set; }
+    public DbSet<UserModuleItem> UserModuleItems { get; set; }
     public DbSet<UserExam> UserExams { get; set; }
     public DbSet<UploadedFile> UploadedFiles { get; set; }
     public DbSet<Question> Questions { get; set; } = default!;

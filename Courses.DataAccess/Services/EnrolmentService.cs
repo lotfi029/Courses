@@ -3,6 +3,7 @@ using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
 using Courses.Business.Contract.User;
+using Courses.Business.Entities;
 
 namespace Courses.DataAccess.Services;
 public class EnrolmentService(
@@ -166,7 +167,6 @@ public class EnrolmentService(
                 userCourse.IsCompleted,
                 userCourse.LastInteractDate,
                 userCourse.FinshedDate,
-                //Tags = c.Tags.Select(t => t.Title),
                 Categories = categories
             })
             .AsNoTracking()
@@ -200,56 +200,43 @@ public class EnrolmentService(
                 c.Key.LastInteractDate,
                 c.Key.FinshedDate,
                 c.Key.Progress,
-                //Tags = c.SelectMany(e => e.Tags).ToList(),
                 Categories = c.Select(e => e.Categories).Adapt<List<CategoryResponse>>()
 
-            }).Single();
-
-      
-
-        
- 
-
-        var modules = await _context.Modules
-            .Where(m => m.CourseId == courseId)
-            
-            .AsNoTracking()
-            
-            .ToListAsync(cancellationToken);
+            }).Single();     
 
 
-        //var moduleItem = modules.SelectMany(e => e.ModuleItems);
+        var moduleQuery = await (
+            from m in _context.Modules
+            join mi in _context.ModuleItems
+            on m.Id equals mi.ModuleId
+            join umi in _context.UserModuleItems
+            on mi.Id equals umi.ModuleItemId into umis
+            from umi in umis.DefaultIfEmpty()
+            where m.CourseId == courseId
+            select new
+            {
+                m.Id,
+                m.Title,
+                m.Description,
+                m.Duration,
+                moduleItemId = mi.Id,
+                moduleItemTitle = mi.Title,
+                moduleItemDuration = mi.Duration,
+                mi.ItemType,
+                IsComplete = umi == null ? false : umi.IsComplete,
+                startDate = umi == null ? default : umi.StartDate,
+                endDate = umi.EndDate ?? null
+            }).ToListAsync(cancellationToken);
 
-        
 
-            var userLessons = await (
-                from l in _context.Lessons
-                join ul in _context.UserLessons
-                on l.Id equals ul.ModuleItemId into uls
-                from ul in uls.DefaultIfEmpty()
-                select new
-                {
-                    l.ModuleId,
-                    LessonResponse = new UserLessonResponse(
-                            l.Id,
-                            l.Title,
-                            l.FileId,
-                            l.Duration,
-                            ul == null ? null : ul.IsComplete,
-                            ul.LastWatchedTimestamp ?? null,
-                            ul == null ? null : ul.StartDate,
-                            ul == null ? null : ul.LastInteractDate,
-                            ul.EndDate ?? null,
-                            l.Resources.Adapt<List<RecourseResponse>>()
-                        )
-                }
-            )
-            .AsNoTracking()
-            
-            .ToListAsync(cancellationToken);
-        var lessonsByModule = userLessons
-            .GroupBy(ul => ul.ModuleId)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.LessonResponse).ToList());
+        var modules = moduleQuery
+            .GroupBy(m => new { m.Id, m.Title, m.Description, m.Duration })
+            .Select(x => new { x.Key.Id, x.Key.Title, x.Key.Description, x.Key.Duration, moduleItem = x.Select(um => new UserModuleItemResponse(um.moduleItemId, um.moduleItemTitle, um.moduleItemDuration, um.IsComplete, um.startDate, um.endDate, (int)um.ItemType)).ToList() })
+            .Select(x => new UserModuleResponse(x.Id, x.Title, x.Description, x.Duration, x.moduleItem))
+            .ToList();
+
+
+
         var respons = new UserCourseResponse(
             course.Id,
             course.Title,
@@ -263,8 +250,7 @@ public class EnrolmentService(
             course.IsCompleted,
             course.LastInteractDate,
             course.FinshedDate,
-            [],
-            //course.Tags,
+            modules,
             course.Categories
             );
 
@@ -319,16 +305,17 @@ public class EnrolmentService(
     } 
     public async Task<IEnumerable<UserCourseResponse>> GetMyCoursesAsync(string userId, CancellationToken cancellationToken = default)
     {
-        var courses = await (
+
+        var query = await (
             from c in _context.Courses
             join cCat in _context.CourseCategories
-            on c.Id equals cCat.CourseId into cCats
-            from cCat in cCats.DefaultIfEmpty()
-            join cats in _context.Categories 
-            on cCat.Id equals cats.Id into categories
-            from category in categories.DefaultIfEmpty()
+            on c.Id equals cCat.CourseId into cc
+            from cCats in cc.DefaultIfEmpty()
+            join cats in _context.Categories
+            on cCats.CategoryId equals cats.Id into cats
+            from categories in cats.DefaultIfEmpty()
             join uc in _context.UserCourses
-            on c.Id equals uc.CourseId
+            on c.Id equals uc.CourseId 
             where uc.UserId == userId
             select new
             {
@@ -336,18 +323,34 @@ public class EnrolmentService(
                 c.Title,
                 c.Description,
                 c.Level,
-                c.Thumbnail,
-                c.Duration,
                 c.Rating,
+                c.Duration,
+                c.Thumbnail,
                 uc.Progress,
                 userCourseId = uc.Id,
                 uc.IsCompleted,
                 uc.LastInteractDate,
                 uc.FinshedDate,
-                category = category.Adapt<CategoryResponse>()
-                //tags = c.Tags.Select(e => e.Title)
+                Categories = categories
             })
-            .GroupBy(x => new { x.Id, x.Title, x.Description, x.Level, x.Thumbnail, x.Duration, x.Rating, x.Progress, x.userCourseId, x.IsCompleted, x.LastInteractDate, x.FinshedDate })
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var courses = query
+            .GroupBy(c => new {
+                c.Id,
+                c.Title,
+                c.Description,
+                c.Level,
+                c.Rating,
+                c.Duration,
+                c.Thumbnail,
+                c.userCourseId,
+                c.IsCompleted,
+                c.LastInteractDate,
+                c.FinshedDate,
+                c.Progress
+            })
             .Select(c => new UserCourseResponse(
                 c.Key.Id,
                 c.Key.Title,
@@ -362,10 +365,8 @@ public class EnrolmentService(
                 c.Key.LastInteractDate,
                 c.Key.FinshedDate,
                 null!,
-                //c.SelectMany(e => e.tags).ToList(),
-                c.Select(e => e.category).ToList()
-            ))
-            .ToListAsync(cancellationToken);
+                c.Select(e => e.Categories).Adapt<List<CategoryResponse>>()
+            )).ToList();
 
         if (courses is null)
             return [];

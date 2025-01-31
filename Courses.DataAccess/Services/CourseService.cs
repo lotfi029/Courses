@@ -64,9 +64,7 @@ public partial class CourseService(
     public async Task<Result> ToggleIsPublishAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
 
-        var course = await _context.Courses
-            .Include(e => e.Modules)
-            //.ThenInclude(e => e.Lessons)
+        var course = await _context.Courses            
             .SingleOrDefaultAsync(e => e.Id == id, cancellationToken);
 
         if (course is null)
@@ -76,17 +74,20 @@ public partial class CourseService(
             return UserErrors.UnAutherizeAccess;
 
         var modules = await _context.Modules
-            //.Include(e => e.Lessons)
             .Where(e => e.CourseId == id)
-            .ToDictionaryAsync(e => e, e => e, cancellationToken);
-        
-        int preViewCnt = 0;
-        
-        foreach(var module in modules)
-        {
-            //preViewCnt += module.Value.Count();
-        }
+            .Select(e => e.Id)
+            .ToListAsync(cancellationToken);
 
+        if (modules is null || modules.Count == 0)
+            return ModuleErrors.NotFound;
+        
+        var lesson = await _context.Lessons
+            .Where(e => modules.Contains(e.ModuleId))
+            .Select(e => e.IsPreview)
+            .ToListAsync(cancellationToken);
+
+        int preViewCnt = lesson.Select(e => e == true).Count();
+        
         if (preViewCnt < 2)
             return CourseErrors.CourseNotValidToPublish;
 
