@@ -22,24 +22,30 @@ public class Result
 public class Result<TValue>(TValue? value, bool isSuccess, Error error) : Result(isSuccess, error)
 {
     private readonly TValue? _value = value;
+
     public TValue? Value => 
-        isSuccess 
+        IsSuccess 
         ? _value 
         : throw new InvalidOperationException();
 }
-//public class Result<TValue1, TValue2>(TValue1? value1, TValue2? value2, bool isSuccess, Error error) 
-//    : Result<TValue1>(value1, isSuccess, error)
-//{
-//    private readonly TValue1? _value1 = value1;
-//    private readonly TValue2? _value2 = value2;
+public class Result<TValue1, TValue2>(TValue1? value1, TValue2? value2, bool isSuccess, Error error) 
+   : Result<TValue1>(value1, isSuccess, error)
+{
+    private readonly TValue1? _value1 = value1;
+    private readonly TValue2? _value2 = value2;
 
-//    public object GetValue()
-//    {
-//        if (_value1 is not null && _value2 is null)    
-//            return _value1;
-//        else if (_value2 is not null && _value1 is null)
-//            return _value2;
-//        else 
-//            throw new InvalidOperationException();
-//    }
-//}
+
+    public static Result<TValue1, TValue2> Success(TValue1 value1, TValue2 value2) =>
+        new(value1, value2, true, Error.Non);
+
+    public new static Result<TValue1, TValue2> Failure(Error error) => new(default, default, false, error);
+    public TValue2? Value2 => 
+        IsSuccess 
+        ? _value2 
+        : throw new InvalidOperationException();
+    
+    public TValue1? Value1 => 
+        IsSuccess 
+        ? _value1 
+        : throw new InvalidOperationException();
+}

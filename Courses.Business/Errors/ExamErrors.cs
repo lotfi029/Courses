@@ -2,8 +2,8 @@
 
 public class ExamErrors
 {
-    public static readonly Error NotFoundExam
-        = new(nameof(NotFoundExam), "Exam not found", StatusCodes.Status404NotFound);
+    public static readonly Error NotFound
+        = new(nameof(NotFound), "Exam not found", StatusCodes.Status404NotFound);
     
     public static readonly Error DuplicatedTitle
         = new(nameof(DuplicatedTitle), "Duplicated title with same module", StatusCodes.Status400BadRequest);

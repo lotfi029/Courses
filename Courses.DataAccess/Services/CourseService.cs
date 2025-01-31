@@ -1,7 +1,6 @@
 ﻿using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
-using Courses.Business.Contract.Tag;
 using Courses.Business.Contract.UploadFile;
 using Courses.Business.Contract.User;
 
@@ -242,77 +241,6 @@ public partial class CourseService(
         var response = courses.Adapt<List<CourseResponse>>();
 
         return response;
-    }
-
-}
-public partial class CourseService
-{
-
-
-    private async Task<IEnumerable<CourseResponse>> GetCoursesAsync(Guid? id, string? userId = null, CancellationToken cancellationToken = default)
-    {
-        //var query = await (
-        //    from c in _context.Courses
-        //    join cCat in _context.CourseCategories
-        //    on c.Id equals cCat.CourseId into cc
-        //    from cCats in cc.DefaultIfEmpty()
-        //    join cats in _context.Categories
-        //    on cCats.CategoryId equals cats.Id into cats
-        //    from categories in cats.DefaultIfEmpty()
-        //    join userCourse in _context.UserCourses
-        //    on new { CourseId = c.Id, UserId = userId } equals new { userCourse.CourseId, userCourse.UserId } into userCourseJoin
-        //    from userCourse in userCourseJoin.DefaultIfEmpty()
-        //    where id == null || c.Id == id
-        //    select new
-        //    {
-        //        c.Id,
-        //        c.Title,
-        //        c.Description,
-        //        c.Level,
-        //        c.Rating,
-        //        c.Duration,
-        //        c.Price,
-        //        c.ThumbnailId,
-        //        c.IsPublished,
-        //        Tags = c.Tags.Select(e => e.Title),
-        //        categories,
-        //        userCourse
-        //    })
-        //    .AsNoTracking()
-        //    .ToListAsync(cancellationToken);
-
-        //var course = query.GroupBy(
-        //    group => new
-        //    {
-        //        group.Id,
-        //        group.Title,
-        //        group.Description,
-        //        group.Level,
-        //        group.Rating,
-        //        group.Duration,
-        //        group.Price,
-        //        group.IsPublished,
-        //        group.ThumbnailId,
-        //        group.userCourse
-        //    })
-        //    .Select(
-        //    x => new CourseResponse
-        //    (
-        //        x.Key.Id,
-        //        x.Key.Title,
-        //        x.Key.Description,
-        //        x.Key.Level,
-        //        x.Key.ThumbnailId,
-        //        x.Key.Duration,
-        //        x.Key.Rating,
-        //        x.Key.IsPublished,
-        //        x.Key.Price,
-        //        x.SelectMany(e => e.Tags ?? []).Distinct().ToList(),
-        //        x.Select(e => e.categories).Distinct().Adapt<List<CategoryResponse>>()
-        //        //x.Key.userCourse.Adapt<UserCourseResponse>()
-        //    ));
-
-        return  []; 
     }
 
 }

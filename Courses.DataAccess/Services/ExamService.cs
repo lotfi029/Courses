@@ -1,4 +1,5 @@
-﻿using Courses.Business.Contract.Exam;
+﻿using Courses.Business.Abstract.Enums;
+using Courses.Business.Contract.Exam;
 using Courses.Business.Contract.Question;
 using Courses.Business.Contract.UserExam;
 
@@ -29,6 +30,7 @@ public class ExamService(
         exam.ModuleId = moduleId;
         exam.OrderIndex = lastModuleItemNo + 1;
         exam.IsDisable = true;
+        exam.ItemType = ModuleItemType.Exam;
 
         await _context.Exams.AddAsync(exam, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
@@ -39,7 +41,7 @@ public class ExamService(
     {
 
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } exam)
-            return ExamErrors.NotFoundExam;
+            return ExamErrors.NotFound;
 
         var courseId = await _context.Modules
             .Where(e => e.Id == moduleId && e.CreatedById == userId)
@@ -80,7 +82,7 @@ public class ExamService(
     public async Task<Result> RemoveExamQuestionsAsync(Guid id, Guid moduleId, string userId, IEnumerable<int> questionIds, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.SingleOrDefaultAsync(e => e.Id == id, cancellationToken) is not { } exam)
-            return ExamErrors.NotFoundExam;
+            return ExamErrors.NotFound;
 
         var courseId = await _context.Modules
             .Where(e => e.Id == moduleId && e.CreatedById == userId)
@@ -105,7 +107,7 @@ public class ExamService(
     public async Task<Result> UpdateAsync(Guid id, Guid moduleId, string userId, ExamRequest request, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.SingleAsync(e => e.Id == id && e.CreatedById == userId, cancellationToken) is not { } exam)
-            return ExamErrors.NotFoundExam;
+            return ExamErrors.NotFound;
 
         if (!await _context.Exams.AnyAsync(e => e.Title == request.Title && e.ModuleId == moduleId, cancellationToken))
             return ModuleErrors.DuplicatedTitle;
@@ -119,13 +121,13 @@ public class ExamService(
     public async Task<Result> ToggleAsync(Guid id, string userId, CancellationToken cancellationToken = default)
     {
         if (await _context.Exams.FindAsync([id], cancellationToken) is not { } exam)
-            return ExamErrors.NotFoundExam;
+            return ExamErrors.NotFound;
 
         if (exam.CreatedById != userId)
             return UserErrors.UnAutherizeAccess;
 
         if (await _context.ExamQuestion.CountAsync(e => e.ExamId == id, cancellationToken) < 10)
-            return ExamErrors.NotFoundExam;
+            return ExamErrors.NotFound;
 
         exam.IsDisable = !exam.IsDisable;
 
@@ -140,7 +142,7 @@ public class ExamService(
             .SingleOrDefaultAsync(e => e.Id == id && e.CreatedById == userId, cancellationToken);
 
         if (exam is null)
-            return Result.Failure<ExamResponse>(ExamErrors.NotFoundExam);
+            return Result.Failure<ExamResponse>(ExamErrors.NotFound);
 
         var question = await _context.Questions
             .Include(o => o.Options)

@@ -15,7 +15,7 @@ public static class ResultExtensions
         problemDetails!.Extensions = new Dictionary<string, object?>()
         {
             {
-                "Errors", new[] { new {result.Error.Code, result.Error.Decription } }
+                "Errors", new[] { new {result.Error.Code, result.Error.Description } }
             }
         };
 

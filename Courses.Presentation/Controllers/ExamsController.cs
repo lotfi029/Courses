@@ -45,7 +45,7 @@ public class ExamsController(
     {
         var userId = User.GetUserId()!;
 
-        var result = await _moduleItemService.UpdateIndexExamAsync(moduleId, id, userId, request.Index, cancellationToken);
+        var result = await _moduleItemService.UpdateModuleItemIndexAsync(moduleId, id, userId, request.Index, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
