@@ -1,5 +1,4 @@
 ﻿using Courses.Business.Contract.Auth;
-using Courses.Business.Contract.User;
 
 namespace Courses.Presentation.Controllers;
 [Route("[controller]")]

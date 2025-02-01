@@ -1,6 +1,4 @@
-﻿using Courses.Business.Contract.User;
-
-namespace Courses.Presentation.Controllers;
+﻿namespace Courses.Presentation.Controllers;
 [Route("u")]
 [ApiController]
 [Authorize]

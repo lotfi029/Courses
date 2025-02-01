@@ -1,4 +1,4 @@
-﻿using Courses.Business.Contract.Lesson;
+﻿using Courses.Business.Contract.ModuleItem;
 
 namespace Courses.Business.Contract.Module;
 

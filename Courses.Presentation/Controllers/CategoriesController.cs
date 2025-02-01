@@ -1,6 +1,4 @@
-﻿using Courses.Business.Abstract.Constants;
-using Courses.Business.Contract.Category;
-using Courses.Business.Authentication.Filters;
+﻿using Courses.Business.Contract.Category;
 
 namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
@@ -18,21 +16,24 @@ public class CategoriesController(ICategoryService categoryService) : Controller
 
         return result.IsSuccess ? CreatedAtAction(nameof(Get), new { id = result.Value }, null) : result.ToProblem();
     }
-    [HttpPut("{id:guid}")]
-    public async Task<IActionResult> ToggleStatus([FromRoute] Guid id, CancellationToken cancellationToken)
-    {
-        var result = await _categoryService.ToggleStatusAsync(id, cancellationToken);
-
-        return result.IsSuccess ? Ok() : result.ToProblem();
-    }
     [HttpPut("update/{id:guid}")]
+    [HasPermission(Permissions.UpdateCategory)]
     public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] CategoryRequest request, CancellationToken cancellationToken)
     {
         var result = await _categoryService.UpdateAsync(id, request, cancellationToken);
 
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
+    [HttpPut("{id:guid}")]
+    [HasPermission(Permissions.UpdateCategory)]
+    public async Task<IActionResult> ToggleStatus([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _categoryService.ToggleStatusAsync(id, cancellationToken);
+
+        return result.IsSuccess ? Ok() : result.ToProblem();
+    }
     [HttpGet("{id:guid}")]
+    [HasPermission(Permissions.GetCategory)]
     public async Task<IActionResult> Get([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var result = await _categoryService.GetByIdAsync(id, cancellationToken);
@@ -40,6 +41,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpGet("")]
+    [HasPermission(Permissions.GetCategory)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         var result = await _categoryService.GetAllAsync(cancellationToken);
@@ -47,6 +49,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Ok(result);
     }
     [HttpGet("include-disable")]
+    [HasPermission(Permissions.GetCategory)]
     public async Task<IActionResult> GetAllIncludeDisable(CancellationToken cancellationToken)
     {
         var result = await _categoryService.GetAllAsync(true, cancellationToken);

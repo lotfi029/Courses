@@ -1,7 +1,4 @@
-﻿using Courses.Business.Contract.Course;
-using FFmpeg.AutoGen;
-
-namespace Courses.Presentation.Controllers;
+﻿namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class GuestCoursesController(IGuestCourseService userCourseResponse) : ControllerBase

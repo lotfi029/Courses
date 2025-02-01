@@ -1,5 +1,4 @@
 ﻿using Courses.Business.Contract.Lesson;
-using Courses.Business.Contract.Module;
 
 namespace Courses.Business.IServices;
 public interface ILessonService

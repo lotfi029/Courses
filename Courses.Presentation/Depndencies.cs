@@ -69,8 +69,7 @@ public static class Depndencies
     public static IServiceCollection AddAuthConfig(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddIdentity<ApplicationUser, ApplicationRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
 
         services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();

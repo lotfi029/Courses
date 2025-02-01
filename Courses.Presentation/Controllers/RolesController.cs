@@ -1,6 +1,4 @@
-﻿using Courses.Business.Abstract.Constants;
-using Courses.Business.Authentication.Filters;
-using Courses.Business.Contract.Role;
+﻿using Courses.Business.Contract.Role;
 
 namespace Courses.Presentation.Controllers;
 [Route("api/[controller]")]
@@ -27,7 +25,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("toggle-status/{id:alpha}")]
-    [HasPermission(Permissions.ToggleRole)]
+    [HasPermission(Permissions.UpdateRole)]
     public async Task<IActionResult> ToggleStatus([FromRoute]string id, CancellationToken cancellationToken)
     {
         var result = await _roleService.ToggleStatusAsync(id, cancellationToken);
@@ -35,6 +33,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpGet("{id:alpha}")]
+    [HasPermission(Permissions.GetRole)]
     public async Task<IActionResult> Get([FromRoute] string id, CancellationToken cancellationToken)
     {
         var result = await _roleService.GetAsync(id, cancellationToken);
@@ -42,6 +41,7 @@ public class RolesController(IRoleService roleService) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpGet("")]
+    [HasPermission(Permissions.GetRole)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken )
     {
         var result = await _roleService.GetAllAsync(cancellationToken: cancellationToken);

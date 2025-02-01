@@ -35,7 +35,8 @@ public class LessonService(
             ModuleId = moduleId,
             Description = request.Description,
             FileId = fileId,
-            OrderIndex = lastModuleItemNo + 1 
+            OrderIndex = lastModuleItemNo + 1 ,
+            ItemType = ModuleItemType.Lesson
         };
 
         await _context.Lessons.AddAsync(lesson, cancellationToken);

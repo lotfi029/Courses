@@ -2,6 +2,7 @@
 using Courses.Business.Contract.Course;
 using Courses.Business.Contract.Lesson;
 using Courses.Business.Contract.Module;
+using Courses.Business.Contract.ModuleItem;
 using Courses.Business.Contract.User;
 using Courses.Business.Entities;
 
@@ -126,7 +127,7 @@ public class EnrolmentService(
         userCourse.LastWatchTimestamp = TimeSpan.Zero;
 
         userLesson.LastInteractDate = DateTime.UtcNow;
-        userLesson.LastWatchedTimestamp = TimeSpan.Zero;
+
         await _context.SaveChangesAsync(cancellationToken);
 
         var response = (lesson, userLesson).Adapt<UserLessonResponse>();

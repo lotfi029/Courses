@@ -2,3 +2,8 @@
 global using Courses.Business.IServices;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Mvc;
+global using Courses.Business.Abstract.Constants;
+global using Courses.Business.Authentication.Filters;
+global using Courses.Business.Contract.UploadFile;
+global using Courses.Business.Contract.User;
+global using Courses.Business.Contract.Lesson;

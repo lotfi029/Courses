@@ -1,8 +1,4 @@
-﻿using Courses.Business.Contract.Lesson;
-using Courses.Business.Entities;
-using System.Security.Claims;
-
-namespace Courses.Presentation.Controllers;
+﻿namespace Courses.Presentation.Controllers;
 [Route("api/{courseId:guid}/modules/{moduleId:guid}/[controller]")]
 [ApiController]
 [Authorize]
@@ -14,6 +10,7 @@ public class LessonsController(
     private readonly IModuleItemService _moduleItemService = moduleItemService;
 
     [HttpPost("")]
+    [HasPermission(Permissions.AddLesson)]
     public async Task<IActionResult> Add([FromRoute] Guid courseId, [FromRoute] Guid moduleId, [FromForm] LessonRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -23,6 +20,7 @@ public class LessonsController(
         return result.IsSuccess ? CreatedAtAction(nameof(Get), new { courseId, moduleId, id = result.Value }, null) : result.ToProblem();
     }
     [HttpPut("{id:guid}")]
+    [HasPermission(Permissions.UpdateLesson)]
     public async Task<IActionResult> UpdateTitle([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateLessonRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -32,6 +30,7 @@ public class LessonsController(
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:guid}/update-index")]
+    [HasPermission(Permissions.UpdateLesson)]
     public async Task<IActionResult> UpdateOrder([FromRoute] Guid id, [FromRoute] Guid moduleId, [FromBody] UpdateIndexRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -41,6 +40,7 @@ public class LessonsController(
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:guid}/update-video")]
+    [HasPermission(Permissions.UpdateLesson)]
     public async Task<IActionResult> UpdateVideo([FromRoute] Guid id, [FromForm] UpdateLessonVideoRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -50,6 +50,7 @@ public class LessonsController(
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPut("{id:guid}/toggle-preview")]
+    [HasPermission(Permissions.UpdateLesson)]
     public async Task<IActionResult> ToggleIsPreview([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -59,6 +60,7 @@ public class LessonsController(
         return result.IsSuccess ? Ok() : result.ToProblem();
     }
     [HttpPost("{id:guid}/add-recourse")]
+    [HasPermission(Permissions.UpdateLesson)]
     public async Task<IActionResult> AddRecourse([FromRoute] Guid id, [FromForm] RecourseRequest request, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -69,6 +71,7 @@ public class LessonsController(
 
     }
     [HttpGet("{id:guid}")]
+    [HasPermission(Permissions.GetLesson)]
     public async Task<IActionResult> Get([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
@@ -78,6 +81,7 @@ public class LessonsController(
         return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
     }
     [HttpGet("")]
+    [HasPermission(Permissions.GetLesson)]
     public async Task<IActionResult> GetAll([FromRoute] Guid moduleId, CancellationToken cancellationToken)
     {
         var userId = User.GetUserId()!;
