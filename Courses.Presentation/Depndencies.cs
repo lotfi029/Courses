@@ -1,6 +1,8 @@
 ﻿using Courses.Business.Authentication;
 using Courses.Business.Entities;
 using Courses.DataAccess.Presistence;
+using Courses.Business;
+
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +12,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Courses.DataAccess.Services;
-using Courses.Business;
 using Microsoft.AspNetCore.Identity;
 using Courses.Business.Authentication.Filters;
 
